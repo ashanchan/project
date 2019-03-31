@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import pkgImporter
 import util.system as SYSTEM
 import util.system as SYSTEM
@@ -110,7 +111,7 @@ def createFolders(language):
 def generateTranslation(transRef, mappedRef):
     idx = 0
     for lang in transRef['language']:
-        fileName = pkgImporter.getFileWithPath('./messages/'+str(lang)+'/message.json')
+        fileName = pkgImporter.getFileWithPath('messages/'+str(lang)+'/message.json')
         LOGGER.show('info', ('# \t\tCreating file %d %s  \t\t\t\t#' % (idx, fileName)))
         idx += 1
         FILE_IO.writeJson(fileName, transRef['data'][lang])

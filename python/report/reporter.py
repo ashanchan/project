@@ -1,14 +1,10 @@
+#!/usr/bin/env python
 import pkgImporter
 import util.system as SYSTEM
 import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
 import util.xml2Json as CONVERTOR
-
-# ===================================================
-import sys
-import json
-import codecs
 # ===================================================
 
 

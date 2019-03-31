@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 import json
 import codecs
-#import util.log as LOGGER
+import util.log as LOGGER
 # ===================================================
 
 
