@@ -1,0 +1,11 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# compiled output
+/python/**/data
+/python/**/__pycache__
+/python/**/*.pyc
+/python/**/*.wav
+/python/**/*.txt
+/python/temp
+/python/translation/messages
+/python/translation/messages

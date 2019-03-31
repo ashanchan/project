@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "/anaconda3/bin/python",
+    "python.autoComplete.addBrackets": true,
+    "python.formatting.autopep8Args": [
+        "--max-line-length=200"
+    ]
+}
