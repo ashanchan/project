@@ -13,10 +13,10 @@ import codecs
 
 
 def init():
-    catalogId = readParam()
+    catalog = readParam()
     #catalogId = 'APL977-a80en'
-    if catalogId != None:
-        generateReport(catalogId)
+    if catalog['catalogId'] != None:
+        generateReport(catalog)
 
 # ===================================================
 
@@ -33,26 +33,29 @@ def readParam():
     catalogId = raw_input("Enter Course CatlogId without extension ")
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
-
-    isExist1 = SYSTEM.fileExist('./data/'+catalogId+'.xml')
+    courseXml = pkgImporter.getFileWithPath('data/'+catalogId+'.xml')
+    courseData = pkgImporter.getFileWithPath('data/'+catalogId+'.json')
+    courseProgress = pkgImporter.getFileWithPath('data/'+catalogId+'-progress.json')
+    
+    isExist1 = SYSTEM.fileExist(courseXml)
     if isExist1 == False:
-        LOGGER.show('error', ('File %s does not exists' % ('./data/'+catalogId+'.xml')))
+        LOGGER.show('error', ('File %s does not exists' %(courseXml)))
 
-    isExist2 = SYSTEM.fileExist('./data/'+catalogId+'-progress.json')
+    isExist2 = SYSTEM.fileExist(courseProgress)
     if isExist2 == False:
-        LOGGER.show('error', ('File %s does not exists' % ('./data/'+catalogId+'-progress.json')))
+        LOGGER.show('error', ('File %s does not exists' %(courseProgress)))
 
     if isExist1 == True and isExist2 == True:
-        CONVERTOR.convert('./data/'+catalogId)
+        CONVERTOR.convert(courseXml, courseData)
     else:
         catalogId = None
 
-    return catalogId
+    return {'catalogId' : catalogId, 'courseData' : courseData,  'courseProgress' : courseProgress}
 
 # ===================================================
 
 
-def generateReport(catalogId):
+def generateReport(catalog):
     lBreaker = ('======================================================================\n')
     qBreaker = ('-------------------------------------\n')
     strLine = ''
@@ -62,8 +65,8 @@ def generateReport(catalogId):
     pQctr = 0
     assessedLesson = 0
 
-    jsonCourseData = FILE_IO.readData('./data/'+catalogId+'.json')['course']
-    jsonProgressData = FILE_IO.readData('./data/'+catalogId+'-progress.json')
+    jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
+    jsonProgressData = FILE_IO.readData(catalog['courseProgress'])
     courseData = getCourseData(jsonCourseData)
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
     testoutTaken = False
@@ -144,10 +147,14 @@ def generateReport(catalogId):
     strLine += ('\t\t*\tLesson Status\t\t\t\t\t : [%s]  \t*\n' % (lessonStatus))
     strLine += ('\t\t*********************************************************\n')
     strLine += ('\n\n')
+ 
+    reportFile = catalog['catalogId']
+    reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.txt')
 
-    FILE_IO.writeFile('./data/'+catalogId+'-report.txt', strLine)
 
-    LOGGER.show('info', ('Report created  %s ' % ('./data/'+catalogId+'-report.txt')))
+    FILE_IO.writeFile(reportFile, strLine)
+    LOGGER.show('info', ('Report created  %s ' % (reportFile)))
+    SYSTEM.remove(catalog['courseData'])
 
 
 # ===================================================
