@@ -14,7 +14,6 @@ import codecs
 
 def init():
     catalog = readParam()
-    #catalogId = 'APL977-a80en'
     if catalog['catalogId'] != None:
         generateReport(catalog)
 
@@ -30,27 +29,28 @@ def readParam():
     LOGGER.show('info', ('#\t\t2. catelogId-progress.json\t [Eg. ./data/APL977-a80en-progress.json] \t#'))
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', ('\n'))
+    catalogId = 'APL977-a80en'
     catalogId = raw_input("Enter Course CatlogId without extension ")
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
     courseXml = pkgImporter.getFileWithPath('data/'+catalogId+'.xml')
     courseData = pkgImporter.getFileWithPath('data/'+catalogId+'.json')
     courseProgress = pkgImporter.getFileWithPath('data/'+catalogId+'-progress.json')
-    
+
     isExist1 = SYSTEM.fileExist(courseXml)
     if isExist1 == False:
-        LOGGER.show('error', ('File %s does not exists' %(courseXml)))
+        LOGGER.show('error', ('File %s does not exists' % (courseXml)))
 
     isExist2 = SYSTEM.fileExist(courseProgress)
     if isExist2 == False:
-        LOGGER.show('error', ('File %s does not exists' %(courseProgress)))
+        LOGGER.show('error', ('File %s does not exists' % (courseProgress)))
 
     if isExist1 == True and isExist2 == True:
         CONVERTOR.convert(courseXml, courseData)
     else:
         catalogId = None
 
-    return {'catalogId' : catalogId, 'courseData' : courseData,  'courseProgress' : courseProgress}
+    return {'catalogId': catalogId, 'courseData': courseData,  'courseProgress': courseProgress}
 
 # ===================================================
 
@@ -59,20 +59,22 @@ def generateReport(catalog):
     lBreaker = ('======================================================================\n')
     qBreaker = ('-------------------------------------\n')
     strLine = ''
-    aCtr = 0
-    score = 0
-    tQctr = 0
-    pQctr = 0
+
     assessedLesson = 0
 
     jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
     jsonProgressData = FILE_IO.readData(catalog['courseProgress'])
     courseData = getCourseData(jsonCourseData)
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
-    testoutTaken = False
-    lessonStatus = 'COMPLETED'
+
     for user in jsonProgressData:
+        aCtr = 0
+        score = 0
+        tQctr = 0
+        pQctr = 0
         plData = parseUserResult(user['coreLesson'])
+        lessonStatus = plData['lessonStatus']
+
         strLine += (lBreaker)
         strLine += ('User Id\t\t\t : %s \t Name : %s\n' % (user['userId'], user['userName']))
         strLine += ('Course Name \t : %s \n' % (jsonCourseData['@catalogId']))
@@ -82,8 +84,7 @@ def generateReport(catalog):
         strLine += ('Randomization \t : %s [question, option, all, none] \n' % (jsonCourseData["assessment"]['@randomize']))
         strLine += (lBreaker)
 
-        if plData['plStatus'] == 'done':
-            testoutTaken = True
+        testoutTaken = True if len(plData['testoutData']) > 0 else False
 
         if testoutTaken == True:
             for lesson in courseData:
@@ -123,42 +124,41 @@ def generateReport(catalog):
 
                 strLine += (lBreaker)
 
-    strLine += ('\n\n')
-    strLine += ('\t\t*********************************************************\n')
-    strLine += ('\t\t*                     SUMMARY                           *\n')
-    strLine += ('\t\t*********************************************************\n')
+        strLine += ('\n\n')
+        strLine += ('\t\t*********************************************************\n')
+        strLine += ('\t\t*                     SUMMARY                           *\n')
+        strLine += ('\t\t*********************************************************\n')
 
-    if testoutTaken == True:
-        percObtained = score*100/pQctr
-        status = 'NOT PASSED'
-        if percObtained >= passingPercent:
-            status = 'PASSED'
+        if testoutTaken == True:
+            percObtained = score*100/pQctr
 
-        strLine += ('\t\t*\tTotal Question in the course\t : [%d] \t\t\t*\n' % (tQctr))
-        strLine += ('\t\t*\t\t\t\tQuestions Offered\t : [%d] \t\t\t*\n' % (pQctr))
-        strLine += ('\t\t*\t\t\t\tCorrect Answered\t : [%d]  \t\t\t*\n' % (score))
-        strLine += ('\t\t*\t\t\t\tIncorrect Answered\t : [%d]  \t\t\t*\n' % (pQctr-score))
-        strLine += ('\t\t*\tPassing Percent\t\t\t\t\t : [%s] \t\t\t*\n' % (passingPercent))
-        strLine += ('\t\t*\tObtained Percent\t\t\t\t : [%d]  \t\t\t*\n' % (percObtained))
-        strLine += ('\t\t*\tResult Status\t\t\t\t\t : [%s]  \t*\n' % (status))
-    else:
-        strLine += ('\t\t*\tTestout Status\t\t\t\t\t : [%s]   \t\t*\n' % (plData['plStatus'].upper()))
+            status = 'NOT PASSED'
+            if percObtained >= int(passingPercent):
+                status = 'PASSED   '
 
-    strLine += ('\t\t*\tLesson Status\t\t\t\t\t : [%s]  \t*\n' % (lessonStatus))
-    strLine += ('\t\t*********************************************************\n')
-    strLine += ('\n\n')
- 
+            strLine += ('\t\t*\tTotal Question in the course\t : [%d] \t\t\t*\n' % (tQctr))
+            strLine += ('\t\t*\t\t\t\tQuestions Offered\t : [%d] \t\t\t*\n' % (pQctr))
+            strLine += ('\t\t*\t\t\t\tCorrect Answered\t : [%d]  \t\t\t*\n' % (score))
+            strLine += ('\t\t*\t\t\t\tIncorrect Answered\t : [%d]  \t\t\t*\n' % (pQctr-score))
+            strLine += ('\t\t*\tPassing Percent\t\t\t\t\t : [%s] \t\t\t*\n' % (passingPercent))
+            strLine += ('\t\t*\tObtained Percent\t\t\t\t : [%d]  \t\t\t*\n' % (percObtained))
+            strLine += ('\t\t*\tResult Status\t\t\t\t\t : [%s]\t\t*\n' % (status))
+            strLine += ('\t\t*\tLast Question Attempted\t\t\t : [%s]\t\t\t\t*\n' % (plData['lastQuestion']))    
+                
+        tstStatus = 'DONE' if plData['plStatus'].upper() == 'RESULT' else plData['plStatus'].upper()
+        strLine += ('\t\t*\tTestout Status\t\t\t\t\t : [%s]   \t\t*\n' % (tstStatus))
+        strLine += ('\t\t*\tLesson Status\t\t\t\t\t : [%s]  \t*\n' % (lessonStatus))
+        strLine += ('\t\t*********************************************************\n')
+        strLine += ('\n\n')
+
     reportFile = catalog['catalogId']
     reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.txt')
-
 
     FILE_IO.writeFile(reportFile, strLine)
     LOGGER.show('info', ('Report created  %s ' % (reportFile)))
     SYSTEM.remove(catalog['courseData'])
 
-
 # ===================================================
-
 
 
 def getCourseData(data):
@@ -174,29 +174,41 @@ def getCourseData(data):
 
 
 def parseUserResult(coreLesson):
-    tempPlData = coreLesson.split('PL.')[1]
+    coreData = coreLesson.split('PL.')
+    tempPlData = coreData[1]
     rawPlData = tempPlData.split('|')
     plStatus = rawPlData[0]
     rawPlQuestion = rawPlData[1]
     mappedQuestion = rawPlQuestion.split(',')
     optionIterator = 2
     testoutData = []
+    testoutTaken = True
 
-    for assessmentQuestion in mappedQuestion:
-        ctr = 0
-        mappedQuestionInLesson = assessmentQuestion.split('.')
-        assessmentData = []
-        for question in mappedQuestionInLesson:
-            option = list(rawPlData[optionIterator].split(','))
-            assessmentObj = {'questionIdx': question, 'optionIdx': option}
-            assessmentData.append(assessmentObj)
-            optionIterator += 1
-            ctr += 1
-        testoutData.append(assessmentData)
-    return {'plStatus': plStatus, 'testoutData': testoutData}
+    lessonStatus = 'COMPLETED' if 'lessonsdone' in coreData[0] else 'INCOMPLETE'
 
+    if plStatus == 'skip':
+        testoutTaken = False
+    if plStatus == 'intro':
+        testoutTaken = False
 
+    if testoutTaken == True:
+        for assessmentQuestion in mappedQuestion:
+            ctr = 0
+            mappedQuestionInLesson = assessmentQuestion.split('.')
+            assessmentData = []
+            for question in mappedQuestionInLesson:
+                option = list(rawPlData[optionIterator].split(','))
+                assessmentObj = {'questionIdx': question, 'optionIdx': option}
+                assessmentData.append(assessmentObj)
+                optionIterator += 1
+                ctr += 1
+            testoutData.append(assessmentData)
+        return {'plStatus': plStatus, 'testoutData': testoutData, 'lessonStatus': lessonStatus, 'lastQuestion' : rawPlData[optionIterator]}
+    else:
+        return {'plStatus': plStatus, 'testoutData': [], 'lessonStatus': lessonStatus, 'lastQuestion' : 0}
 # ===================================================
+
+
 def normalizeData(testoutData, totalQuestion):
     mappedData = []
     for ctr in range(totalQuestion):
