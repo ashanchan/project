@@ -1,5 +1,6 @@
 import pkgImporter
 import util.system as SYSTEM
+import util.system as SYSTEM
 import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
@@ -11,9 +12,11 @@ def init():
     SYSTEM.clear()
     LOGGER.show('info', ('#=======================================================================================#'))
     LOGGER.show('info', ('# Starting Translation Process\t\t\t\t\t\t\t\t#'))
-    pointer = ['./data/resourceBundle.xlsx', './data/fluidx_constant_key.xlsx', './data/sample_resource.xlsx', './data/sample_constant_key.xlsx']
-    resourceUrl = pointer[0]
-    constantUrl = pointer[1]
+    pointer = ['data/resourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
+
+    resourceUrl = pkgImporter.getFileWithPath(pointer[0])
+    constantUrl = pkgImporter.getFileWithPath(pointer[1])
+
     resourceDataObj = EXCEL.readData(resourceUrl)
     constantDataObj = EXCEL.readData(constantUrl)
     LOGGER.show('info', ('# \tFile Name : %s \t\t>> Total Rows read : %d \t#' % (resourceUrl, len(resourceDataObj['data']))))
@@ -36,9 +39,10 @@ def createKeyReferences(resourceData, constantData):
     rIdx = 0
     cIdx = 0
     mapReference = []
+    notMappedFileName = pkgImporter.getFileWithPath('not_mapped.txt')
     notMapped = 0
     LOGGER.show('info', ('# \t\tConstant Mappings    \t\t\t\t\t\t\t#'))
-    SYSTEM.remove('not_mapped.txt')
+    SYSTEM.remove(notMappedFileName)
 
     for constant in constantData:
         row_data = {}
@@ -56,7 +60,7 @@ def createKeyReferences(resourceData, constantData):
         if mapped == False:
             row_data = {'rIdx': -1, 'cIdx': cIdx}
             notMapped += 1
-            with open('not_mapped.txt', 'a') as the_file:
+            with open(notMappedFileName, 'a') as the_file:
                 the_file.write(str(constant['Mapped_Key'])+'\n')
             mapReference.append(row_data)
 
@@ -106,7 +110,7 @@ def createFolders(language):
 def generateTranslation(transRef, mappedRef):
     idx = 0
     for lang in transRef['language']:
-        fileName = './messages/'+str(lang)+'/message.json'
+        fileName = pkgImporter.getFileWithPath('./messages/'+str(lang)+'/message.json')
         LOGGER.show('info', ('# \t\tCreating file %d %s  \t\t\t\t#' % (idx, fileName)))
         idx += 1
         FILE_IO.writeJson(fileName, transRef['data'][lang])
