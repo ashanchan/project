@@ -143,8 +143,8 @@ def generateReport(catalog):
             strLine += ('\t\t*\tPassing Percent\t\t\t\t\t : [%s] \t\t\t*\n' % (passingPercent))
             strLine += ('\t\t*\tObtained Percent\t\t\t\t : [%d]  \t\t\t*\n' % (percObtained))
             strLine += ('\t\t*\tResult Status\t\t\t\t\t : [%s]\t\t*\n' % (status))
-            strLine += ('\t\t*\tLast Question Attempted\t\t\t : [%s]\t\t\t\t*\n' % (plData['lastQuestion']))    
-                
+            strLine += ('\t\t*\tLast Question Attempted\t\t\t : [%s]\t\t\t\t*\n' % (plData['lastQuestion']))
+
         tstStatus = 'DONE' if plData['plStatus'].upper() == 'RESULT' else plData['plStatus'].upper()
         strLine += ('\t\t*\tTestout Status\t\t\t\t\t : [%s]   \t\t*\n' % (tstStatus))
         strLine += ('\t\t*\tLesson Status\t\t\t\t\t : [%s]  \t*\n' % (lessonStatus))
@@ -203,9 +203,9 @@ def parseUserResult(coreLesson):
                 optionIterator += 1
                 ctr += 1
             testoutData.append(assessmentData)
-        return {'plStatus': plStatus, 'testoutData': testoutData, 'lessonStatus': lessonStatus, 'lastQuestion' : rawPlData[optionIterator]}
+        return {'plStatus': plStatus, 'testoutData': testoutData, 'lessonStatus': lessonStatus, 'lastQuestion': rawPlData[optionIterator]}
     else:
-        return {'plStatus': plStatus, 'testoutData': [], 'lessonStatus': lessonStatus, 'lastQuestion' : 0}
+        return {'plStatus': plStatus, 'testoutData': [], 'lessonStatus': lessonStatus, 'lastQuestion': 0}
 # ===================================================
 
 
