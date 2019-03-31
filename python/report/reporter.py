@@ -3,7 +3,7 @@ import util.system as SYSTEM
 import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
-#import util.xml2Json as CONVERTOR
+import util.xml2Json as CONVERTOR
 
 # ===================================================
 import sys
@@ -13,8 +13,8 @@ import codecs
 
 
 def init():
-    #catalogId = readParam()
-    catalogId = 'APL977-a80en'
+    catalogId = readParam()
+    #catalogId = 'APL977-a80en'
     if catalogId != None:
         generateReport(catalogId)
 
@@ -30,7 +30,7 @@ def readParam():
     LOGGER.show('info', ('#\t\t2. catelogId-progress.json\t [Eg. ./data/APL977-a80en-progress.json] \t#'))
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', ('\n'))
-    #catalogId = raw_input("Enter Course CatlogId without extension ")
+    catalogId = raw_input("Enter Course CatlogId without extension ")
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
 
@@ -42,10 +42,10 @@ def readParam():
     if isExist2 == False:
         LOGGER.show('error', ('File %s does not exists' % ('./data/'+catalogId+'-progress.json')))
 
-    # if isExist1 == True and isExist2 == True:
-    #     CONVERTOR.convert('./data/'+catalogId)
-    # else:
-    #     catalogId = None
+    if isExist1 == True and isExist2 == True:
+        CONVERTOR.convert('./data/'+catalogId)
+    else:
+        catalogId = None
 
     return catalogId
 
@@ -62,8 +62,8 @@ def generateReport(catalogId):
     pQctr = 0
     assessedLesson = 0
 
-    jsonCourseData = FILE_IO.readData('./report/data/'+catalogId+'.json')['course']
-    jsonProgressData = FILE_IO.readData('./report/data/'+catalogId+'-progress.json')
+    jsonCourseData = FILE_IO.readData('./data/'+catalogId+'.json')['course']
+    jsonProgressData = FILE_IO.readData('./data/'+catalogId+'-progress.json')
     courseData = getCourseData(jsonCourseData)
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
     testoutTaken = False
@@ -145,7 +145,7 @@ def generateReport(catalogId):
     strLine += ('\t\t*********************************************************\n')
     strLine += ('\n\n')
 
-    FILE_IO.writeFile('./report/data/'+catalogId+'-report.txt', strLine)
+    FILE_IO.writeFile('./data/'+catalogId+'-report.txt', strLine)
 
     LOGGER.show('info', ('Report created  %s ' % ('./data/'+catalogId+'-report.txt')))
 
