@@ -22,16 +22,16 @@ def readParam():
     LOGGER.show('info', ('#\tStarting Reporting Process\t\t\t\t\t\t\t\t#'))
     LOGGER.show('info', ('#\t\tFor Processing System needs two files in data folder \t\t\t\t#'))
     LOGGER.show('info', ('#\t\t1. catelogId.xml\t\t [Eg. ./data/APL977-a80en.xml] \t\t\t#'))
-    LOGGER.show('info', ('#\t\t2. catelogId-progress.json\t [Eg. ./data/APL977-a80en-progress.json] \t#'))
+    LOGGER.show('info', ('#\t\t2. catelogId-progress.xlsx\t [Eg. ./data/APL977-a80en-progress.xlsx] \t#'))
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', ('\n'))
     catalogId = 'APL977-a80en'
-    catalogId = raw_input("Enter Course CatlogId without extension ")
+    #catalogId = raw_input("Enter Course CatlogId without extension ")
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
     courseXml = pkgImporter.getFileWithPath('data/'+catalogId+'.xml')
     courseData = pkgImporter.getFileWithPath('data/'+catalogId+'.json')
-    courseProgress = pkgImporter.getFileWithPath('data/'+catalogId+'-progress.json')
+    courseProgress = pkgImporter.getFileWithPath('data/'+catalogId+'-progress.xlsx')
 
     isExist1 = SYSTEM.fileExist(courseXml)
     if isExist1 == False:
@@ -59,21 +59,22 @@ def generateReport(catalog):
     assessedLesson = 0
 
     jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
-    jsonProgressData = FILE_IO.readData(catalog['courseProgress'])
+    jsonProgressData = EXCEL.readData(catalog['courseProgress'])
     courseData = getCourseData(jsonCourseData)
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
 
-    for user in jsonProgressData:
+    for user in jsonProgressData['data']:
         aCtr = 0
         score = 0
         tQctr = 0
         pQctr = 0
-        plData = parseUserResult(user['coreLesson'])
+        plData = parseUserResult(user['CORE_LESSON'])
         lessonStatus = plData['lessonStatus']
 
         strLine += (lBreaker)
-        strLine += ('User Id\t\t\t : %s \t Name : %s\n' % (user['userId'], user['userName']))
+        strLine += ('User Id\t\t\t : %s \t Name : %s %s\n' % (user['USER_ID'], user['FIRSTNAME'], user['LASTNAME']))
         strLine += ('Course Name \t : %s \n' % (jsonCourseData['@catalogId']))
+        strLine += ('System Id \t\t : %s \n' % (jsonCourseData['@systemId']))    
         strLine += ('Has Assessment \t : %s \n' % (str(jsonCourseData['assessment']['@lessonType'] == 'personalizedLearning')))
         strLine += ('Passing Percent\t : %s \n' % (passingPercent))
         strLine += ('Pooling \t\t : %s \n' % (jsonCourseData["assessment"]['@pooling']))
@@ -113,7 +114,11 @@ def generateReport(catalog):
                         elif result == 'Incorrect':
                             pQctr += 1
 
-                        strLine += ('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   \n' % (str(correctChoice), str(assessmentData[qCtr]['optionIdx']), result))
+                        sOption = []
+                        for s in assessmentData[qCtr]['optionIdx'] :   
+                            sOption.append(str(s))
+
+                        strLine += ('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   \n' % (str(correctChoice), str(sOption), result))
                         qCtr += 1
 
                     aCtr += 1
