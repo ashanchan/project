@@ -91,8 +91,8 @@ def generateReport(catalog):
                     strLine += ('Assessment\t\t : Not Available - Mandatory Lesson \n')
                 else:
                     questions = lesson['assessment']['question']
-                    strLine += ('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] \n' % (len(questions), lesson['assessment']['@poolSize']))
                     assessmentData = normalizeData(plData['testoutData'][aCtr], len(questions))
+                    strLine += ('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] \n' % (len(questions), lesson['assessment']['@poolSize']))
                     qCtr = 0
                     assessedLesson += 1
                     for question in questions:
@@ -213,7 +213,7 @@ def parseUserResult(coreLesson):
 def normalizeData(testoutData, totalQuestion):
     mappedData = []
     for ctr in range(totalQuestion):
-        placeHolder = {'optionIdx': [], 'questionIdx': str(ctr+1)}
+        placeHolder = {'optionIdx': [], 'questionIdx': str(ctr+1), "pooled" : False}
         mappedData.append(placeHolder)
 
     for data in testoutData:
@@ -222,6 +222,7 @@ def normalizeData(testoutData, totalQuestion):
             cIdx = mappedData[ctr].get('questionIdx')
             if cIdx == qIdx:
                 mappedData[ctr]['optionIdx'] = data['optionIdx']
+                mappedData[ctr]['pooled'] = True
 
     # for x in mappedData:
     #     print('%s \t : %s' % (x['questionIdx'], x['optionIdx']))
