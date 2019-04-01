@@ -19,9 +19,9 @@ def validate(filename):
         try:
             json.load(file)  # put JSON-data to a variable
         except json.JSONDecodeError:
-            LOGGER.show('error', ('# \t\t\tInvalid JSON \t\t\t\t\t\t#'))
+            LOGGER.show('error', ('\t\t\tInvalid JSON '))
         else:
-            LOGGER.show('info', ('# \t\t\tValidiation Successful \t\t\t\t\t\t#'))
+            LOGGER.show('info', ('\t\t\tValidiation Successful '))
             
 
 # ===================================================
