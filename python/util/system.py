@@ -12,6 +12,7 @@ def clear():
 
 # ===================================================
 
+
 def exit():
     sys.exit(0)
 # ===================================================
@@ -30,17 +31,28 @@ def rmtree(folder):
 def remove(fileName):
     try:
         os.remove(fileName)
-    except :
+    except:
         print('')
 # ===================================================
 
+
 def talkBack(msg):
     os.system(msg)
-    #os.system('say %s', %msg)
+    # os.system('say %s', %msg)
 
 # ===================================================
 
+
 def fileExist(fileName):
     return os.path.isfile(fileName)
-    
-    
+
+
+# ===================================================
+def acceptValidInput(prompt, inputRange):
+    while True:
+        val = raw_input(prompt)
+        if val.lower() not in inputRange:
+            sys.stdout.flush()
+        else:
+            break
+    return val.lower()

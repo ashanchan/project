@@ -9,8 +9,9 @@ import util.xml2Json as CONVERTOR
 
 
 def init():
+    catalog = None
     catalog = readParam()
-    if catalog['catalogId'] != None:
+    if catalog and catalog['catalogId'] != None:
         generateReport(catalog)
 
 # ===================================================
@@ -26,10 +27,9 @@ def readParam():
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', ('\n'))
     catalogId = 'APL977-a80en'
-    catalogId = raw_input("Enter Course CatlogId without extension ")
 
-    summaryMode = raw_input("Report Mode : Summary [Y/N] ?")
-    summaryMode = False if summaryMode.upper() == 'N' else True
+    summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S]', ['D','C','S', 'd', 'c', 's'])
+    summaryMode = True if summaryMode == 's' else False
     
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
