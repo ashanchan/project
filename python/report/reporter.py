@@ -53,7 +53,7 @@ def readParam():
     catalogId = 'APL977-a80en'
     summary = 'd'
 
-    summaryMode = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
+    catalogId = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
     summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S] : ', ['D', 'C', 'S', 'd', 'c', 's'])
 
     LOGGER.show('info', (''))
@@ -84,8 +84,6 @@ def generateReport(catalog):
     lBreaker = ('======================================================================')
     qBreaker = ('-------------------------------------')
     printLine = ''
-    strLine = ''
-
     assessedLesson = 0
 
     jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
@@ -215,7 +213,7 @@ def generateReport(catalog):
     reportFile = catalog['catalogId']
     reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.txt')
 
-    FILE_IO.writeFile(reportFile, strLine)
+    FILE_IO.writeFile(reportFile, printLine)
     LOGGER.show('info', ('Report created  %s ' % (reportFile)))
     SYSTEM.remove(catalog['courseData'])
 
