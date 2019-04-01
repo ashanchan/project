@@ -11,8 +11,8 @@ import util.log as LOGGER
 
 def init():
     SYSTEM.clear()
-    LOGGER.show('info', ('#=======================================================================================#'))
-    LOGGER.show('info', ('# Starting Translation Process\t\t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', (' Starting Translation Process'))
     pointer = ['data/resourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
 
     resourceUrl = pkgImporter.getFileWithPath(pointer[0])
@@ -20,16 +20,16 @@ def init():
 
     resourceDataObj = EXCEL.readData(resourceUrl)
     constantDataObj = EXCEL.readData(constantUrl)
-    LOGGER.show('info', ('# \tFile Name : %s \t\t>> Total Rows read : %d \t#' % (resourceUrl, len(resourceDataObj['data']))))
-    LOGGER.show('info', ('# \tFile Name : %s \t>> Total Rows read : %d \t#' % (constantUrl, len(constantDataObj['data']))))
-    LOGGER.show('info', ('# \tCreating References \t\t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
+    LOGGER.show('info', ('\tCreating References '))
     if len(resourceDataObj) != 0:
         mappedRef = createKeyReferences(resourceDataObj['data'], constantDataObj['data'])
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
         createFolders(transRef['language'])
         generateTranslation(transRef, mappedRef)
-        LOGGER.show('info', ('# Exiting Translation Process\t\t\t\t\t\t\t\t#'))
-        LOGGER.show('info', ('#=======================================================================================#'))
+        LOGGER.show('info', (' Exiting Translation Process'))
+        LOGGER.show('info', ('========================================================================================================='))
 
     LOGGER.reset()
 
@@ -42,7 +42,7 @@ def createKeyReferences(resourceData, constantData):
     mapReference = []
     notMappedFileName = pkgImporter.getFileWithPath('not_mapped.txt')
     notMapped = 0
-    LOGGER.show('info', ('# \t\tConstant Mappings    \t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('\t\tConstant Mappings    '))
     SYSTEM.remove(notMappedFileName)
 
     for constant in constantData:
@@ -79,7 +79,7 @@ def createLanguageMapping(mappedRef, resourceData, constantData):
     language.remove('usage')
     language.remove('key')
 
-    LOGGER.show('info', ('# \t\tLanguage Mappings    \t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('\t\tLanguage Mappings    '))
     for lang in language:
         lang_data = {}
         for map in mappedRef:
@@ -95,15 +95,16 @@ def createLanguageMapping(mappedRef, resourceData, constantData):
 
 
 def createFolders(language):
-    LOGGER.show('info', ('# \tCreating Translation folder  \t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('\tCreating Translation folder  '))
+    rootDir = pkgImporter.getDirPath()
 
     try:
-        SYSTEM.rmtree('./messages')
+        SYSTEM.rmtree(rootDir+'/messages')
     except:
         LOGGER.show('warning', ('no dir found'))
     finally:
         for lang in language:
-            folder = './messages/'+str(lang)
+            folder = rootDir+'/messages/'+str(lang)
             SYSTEM.makedirs(folder)
 # ===================================================
 
@@ -112,14 +113,14 @@ def generateTranslation(transRef, mappedRef):
     idx = 0
     for lang in transRef['language']:
         fileName = pkgImporter.getFileWithPath('messages/'+str(lang)+'/message.json')
-        LOGGER.show('info', ('# \t\tCreating file %d %s  \t\t\t\t#' % (idx, fileName)))
+        LOGGER.show('info', ('\t\tCreating file %d %s  ' % (idx, fileName)))
         idx += 1
         FILE_IO.writeJson(fileName, transRef['data'][lang])
 
-    LOGGER.show('info', ('# \tTranslation Generated for %d keys \t\t\t\t\t\t#' % (len(transRef['data']['en']))))
-    LOGGER.show('info', ('# \t\tMapped for %d keys \t\t\t\t\t\t\t#' % (len(transRef['data']['en']) - mappedRef['notMapped'])))
-    LOGGER.show('info', ('# \t\tNot Mapped for %d keys \t\t\t\t\t\t\t#' % mappedRef['notMapped']))
-    LOGGER.show('info', ('# \tTranslation successful for %d files \t\t\t\t\t\t#' % len(transRef['language'])))
+    LOGGER.show('info', ('\tTranslation Generated for %d keys ' % (len(transRef['data']['en']))))
+    LOGGER.show('info', ('\t\tMapped for %d keys ' % (len(transRef['data']['en']) - mappedRef['notMapped'])))
+    LOGGER.show('info', ('\t\tNot Mapped for %d keys ' % mappedRef['notMapped']))
+    LOGGER.show('info', ('\tTranslation successful for %d files \t' % len(transRef['language'])))
 
 
 # ===================================================
