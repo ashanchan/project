@@ -8,6 +8,30 @@ import util.xml2Json as CONVERTOR
 # ===================================================
 
 
+class userData:
+
+    def __init__(self, header, body, footer, mode):
+        self.header = header
+        self.body = body
+        self.footer = footer
+        self.mode = mode
+
+    def getReport(self):
+        strLine = ''
+        for x in self.header:
+            strLine += x + '\n'
+
+        if self.mode != 's':
+            for y in self.body:
+                strLine += y + '\n'
+
+        for z in self.footer:
+            strLine += z+'\n'
+
+        return strLine
+# ===================================================
+
+
 def init():
     catalog = None
     catalog = readParam()
@@ -25,13 +49,14 @@ def readParam():
     LOGGER.show('info', ('#\t\t1. catelogId.xml\t\t [Eg. ./data/APL977-a80en.xml] \t\t\t#'))
     LOGGER.show('info', ('#\t\t2. catelogId-progress.xlsx\t [Eg. ./data/APL977-a80en-progress.xlsx] \t#'))
     LOGGER.show('info', ('#===============================================================================================#'))
-    LOGGER.show('info', ('\n'))
+    LOGGER.show('info', (''))
     catalogId = 'APL977-a80en'
+    summary = 'd'
 
-    summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S]', ['D','C','S', 'd', 'c', 's'])
-    summaryMode = True if summaryMode == 's' else False
-    
-    LOGGER.show('info', ('\n'))
+    catalogId = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
+    summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S] : ', ['D', 'C', 'S', 'd', 'c', 's'])
+
+    LOGGER.show('info', (''))
     catalogId = catalogId.strip()
     courseXml = pkgImporter.getFileWithPath('data/'+catalogId+'.xml')
     courseData = pkgImporter.getFileWithPath('data/'+catalogId+'.json')
@@ -56,10 +81,9 @@ def readParam():
 
 
 def generateReport(catalog):
-    lBreaker = ('======================================================================\n')
-    qBreaker = ('-------------------------------------\n')
-    strLine = ''
-    summaryMode = catalog['summaryMode']
+    lBreaker = ('======================================================================')
+    qBreaker = ('-------------------------------------')
+    printLine = ''
     assessedLesson = 0
 
     jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
@@ -68,48 +92,52 @@ def generateReport(catalog):
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
 
     for user in jsonProgressData['data']:
-        aCtr = 0
+        reportHeader = []
+        reportBody = []
+        reportCompact = []
+        reportFooter = []
         score = 0
+        aCtr = 0
+        lCtr = 0
         tQctr = 0
-        pQctr = 0
+        mCtr = 0
         plData = parseUserResult(user['CORE_LESSON'])
         lessonStatus = plData['lessonStatus']
 
-        strLine += (lBreaker)
-        strLine += ('User Id\t\t\t : %s \t Name : %s %s\n' % (user['USER_ID'], user['FIRSTNAME'], user['LASTNAME']))
-        strLine += ('Course Name \t : %s \n' % (jsonCourseData['@catalogId']))
-        strLine += ('System Id \t\t : %s \n' % (jsonCourseData['@systemId']))    
-        strLine += ('Has Assessment \t : %s \n' % (str(jsonCourseData['assessment']['@lessonType'] == 'personalizedLearning')))
-        strLine += ('Passing Percent\t : %s \n' % (passingPercent))
-        strLine += ('Pooling \t\t : %s \n' % (jsonCourseData["assessment"]['@pooling']))
-        strLine += ('Randomization \t : %s [question, option, all, none] \n' % (jsonCourseData["assessment"]['@randomize']))
-        strLine += (lBreaker)
-
+        reportHeader.append(lBreaker)
+        reportHeader.append('User Id\t\t\t : %s \t Name : %s %s' % (user['USER_ID'], user['FIRSTNAME'], user['LASTNAME']))
+        reportHeader.append('Course Name \t : %s ' % (jsonCourseData['@catalogId']))
+        reportHeader.append('System Id \t\t : %s ' % (jsonCourseData['@systemId']))
+        reportHeader.append('Has Assessment \t : %s ' % (str(jsonCourseData['assessment']['@lessonType'] == 'personalizedLearning')))
+        reportHeader.append('Pooling \t\t : %s ' % (jsonCourseData["assessment"]['@pooling']))
+        reportHeader.append('Randomized on \t : %s ' % (jsonCourseData["assessment"]['@randomize']))
+        reportHeader.append(lBreaker)
+        # =========
         testoutTaken = True if len(plData['testoutData']) > 0 else False
 
         if testoutTaken == True:
             for lesson in courseData:
-                if summaryMode == False :
-                    strLine += ('Lesson Id\t\t : %s \n' % (lesson['lessonId']))
-                    strLine += ('Lesson title\t : %s \n' % (lesson['title']))
-
-                if lesson['assessment'] == None :
-                    if summaryMode == False :
-                        strLine += ('Assessment\t\t : Not Available - Mandatory Lesson \n')
+                reportBody.append('Lesson Id\t\t : %s ' % (lesson['lessonId']))
+                reportBody.append('Lesson title\t : %s ' % (lesson['title']))
+                lCtr += 1
+                if lesson['assessment'] == None:
+                    reportBody.append('Assessment\t\t : Not Available - Mandatory Lesson ')
                 else:
+                    correctCtr = 0
                     questions = lesson['assessment']['question']
                     assessmentData = normalizeData(plData['testoutData'][aCtr], len(questions))
-                    
-                    if summaryMode == False :
-                        strLine += ('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] \n' % (len(questions), lesson['assessment']['@poolSize']))
-                    
+                    poolSize = int(lesson['assessment']['@poolSize'])
+                    reportBody.append('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] ' % (len(questions), poolSize))
+
+                    reportCompact.append('Lesson title\t : %s ' % (lesson['title']))
+                    reportCompact.append('\tQuestions\t : Available\t : [%d] \t Pooled\t\t : [%s] ' % (len(questions), poolSize))
+
                     qCtr = 0
                     assessedLesson += 1
                     for question in questions:
-                        if summaryMode == False :
-                            strLine += (qBreaker)
-                            strLine += ('\t %d %s \n' % ((qCtr+1), question['questionText']['p']))
-                        
+                        reportBody.append(qBreaker)
+                        reportBody.append('\t %d %s ' % ((qCtr+1), question['questionText']['p']))
+
                         cCtr = 0
                         tQctr += 1
                         correctChoice = []
@@ -118,61 +146,74 @@ def generateReport(catalog):
                             if isCorrect:
                                 correctChoice.append(str(choice['@choiceId']))
 
-                            if summaryMode == False :    
-                                strLine += ('\t\t %s\t%s \n' % (choice['@choiceId'], choice['#text']))
-                            
+                            reportBody.append('\t\t %s\t%s ' % (choice['@choiceId'], choice['#text']))
+
                             cCtr += 1
+
                         result = getResult(correctChoice, assessmentData[qCtr]['optionIdx'])
+
                         if result == 'Correct':
                             score += 1
-                            pQctr += 1
+                            mCtr += 1
+                            correctCtr += 1
                         elif result == 'Incorrect':
-                            pQctr += 1
+                            mCtr += 1
 
                         sOption = []
-                        for s in assessmentData[qCtr]['optionIdx'] :   
+                        for s in assessmentData[qCtr]['optionIdx']:
                             sOption.append(str(s))
 
-                        if summaryMode == False :
-                            strLine += ('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   \n' % (str(correctChoice), str(sOption), result))
+                        reportBody.append('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   ' % (str(correctChoice), str(sOption), result))
                         qCtr += 1
 
                     aCtr += 1
+                    reportCompact.append('\t\t\t\t : Correct\t\t : [%s] \t Incorrect\t : [%s]' % (correctCtr, (poolSize - correctCtr)))
+                    reportCompact.append('')
 
-                if summaryMode == False :
-                    strLine += (lBreaker)
-
-        strLine += ('\n\n')
-        strLine += ('\t\t*********************************************************\n')
-        strLine += ('\t\t*                     SUMMARY                           *\n')
-        strLine += ('\t\t*********************************************************\n')
+                reportBody.append(lBreaker)
+        reportCompact.append(lBreaker)
+        reportFooter.append('')
+        reportFooter.append('\t\t*********************************************************')
+        reportFooter.append('\t\t\t                    SUMMARY ')
+        reportFooter.append('\t\t*********************************************************')
 
         if testoutTaken == True:
-            percObtained = score*100/pQctr
+            percObtained = score*100/mCtr
 
             status = 'NOT PASSED'
             if percObtained >= int(passingPercent):
                 status = 'PASSED   '
 
-            strLine += ('\t\t*\tTotal Question in the course\t : [%d] \t\t\t*\n' % (tQctr))
-            strLine += ('\t\t*\t\t\t\tQuestions Offered\t : [%d] \t\t\t*\n' % (pQctr))
-            strLine += ('\t\t*\t\t\t\tCorrect Answered\t : [%d]  \t\t\t*\n' % (score))
-            strLine += ('\t\t*\t\t\t\tIncorrect Answered\t : [%d]  \t\t\t*\n' % (pQctr-score))
-            strLine += ('\t\t*\tPassing Percent\t\t\t\t\t : [%s] \t\t\t*\n' % (passingPercent))
-            strLine += ('\t\t*\tObtained Percent\t\t\t\t : [%d]  \t\t\t*\n' % (percObtained))
-            strLine += ('\t\t*\tResult Status\t\t\t\t\t : [%s]\t\t*\n' % (status))
-            strLine += ('\t\t*\tLast Question Attempted\t\t\t : [%s]\t\t\t\t*\n' % (plData['lastQuestion']))
+            reportFooter.append('\t\t*\tTotal Lesson in the course\t\t : [%d] \t\t\t\t*' % (lCtr))
+            reportFooter.append('\t\t*\t\tTestout Lesson   \t\t\t : [%d] \t\t\t\t*' % (aCtr))
+            reportFooter.append('\t\t*\t\tMandatory Lesson \t\t\t : [%d] \t\t\t\t*' % (lCtr-aCtr))
+            reportFooter.append('\t\t*\tTotal Question in the course\t : [%d] \t\t\t*' % (tQctr))
+            reportFooter.append('\t\t*\t\t\t\tQuestions Offered\t : [%d] \t\t\t*' % (mCtr))
+            reportFooter.append('\t\t*\t\t\t\tCorrect Answered\t : [%d]  \t\t\t*' % (score))
+            reportFooter.append('\t\t*\t\t\t\tIncorrect Answered\t : [%d]  \t\t\t*' % (mCtr-score))
+            reportFooter.append('\t\t*\tPassing Percent\t\t\t\t\t : [%s] \t\t\t*' % (passingPercent))
+            reportFooter.append('\t\t*\tObtained Percent\t\t\t\t : [%d]  \t\t\t*' % (percObtained))
+            reportFooter.append('\t\t*\tResult Status\t\t\t\t\t : [%s]\t\t*' % (status))
+            reportFooter.append('\t\t*\tLast Question Attempted\t\t\t : [%s]\t\t\t\t*' % (plData['lastQuestion']))
 
         tstStatus = 'DONE' if plData['plStatus'].upper() == 'RESULT' else plData['plStatus'].upper()
-        strLine += ('\t\t*\tTestout Status\t\t\t\t\t : [%s]   \t\t*\n' % (tstStatus))
-        strLine += ('\t\t*\tLesson Status\t\t\t\t\t : [%s]  \t*\n' % (lessonStatus))
-        strLine += ('\t\t*********************************************************\n')
-        strLine += ('\n\n')
+
+        reportFooter.append('\t\t*\tTestout Status\t\t\t\t\t : [%s]    \t\t*' % (tstStatus))
+        reportFooter.append('\t\t*\tLesson Status\t\t\t\t\t : [%s] \t\t*' % (lessonStatus))
+        reportFooter.append('\t\t*********************************************************')
+        reportFooter.append('')
+
+        # ======
+        if catalog['summaryMode'] == 'c':
+            reportBody = reportCompact
+
+        repo = userData(reportHeader, reportBody, reportFooter, catalog['summaryMode'])
+        printLine += repo.getReport()
 
     reportFile = catalog['catalogId']
     reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.txt')
 
-    FILE_IO.writeFile(reportFile, strLine)
+    FILE_IO.writeFile(reportFile, printLine)
     LOGGER.show('info', ('Report created  %s ' % (reportFile)))
     SYSTEM.remove(catalog['courseData'])
 
@@ -230,7 +271,7 @@ def parseUserResult(coreLesson):
 def normalizeData(testoutData, totalQuestion):
     mappedData = []
     for ctr in range(totalQuestion):
-        placeHolder = {'optionIdx': [], 'questionIdx': str(ctr+1), "pooled" : False}
+        placeHolder = {'optionIdx': [], 'questionIdx': str(ctr+1), "pooled": False}
         mappedData.append(placeHolder)
 
     for data in testoutData:

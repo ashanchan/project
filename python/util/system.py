@@ -49,10 +49,14 @@ def fileExist(fileName):
 
 # ===================================================
 def acceptValidInput(prompt, inputRange):
-    while True:
-        val = raw_input(prompt)
-        if val.lower() not in inputRange:
-            sys.stdout.flush()
-        else:
-            break
+    if len(inputRange) > 1 :
+        while True:
+            val = raw_input(prompt)
+            if val.lower() not in inputRange:
+                sys.stdout.flush()
+            else:
+                break
+    else :
+        val = raw_input(prompt)       
+            
     return val.lower()
