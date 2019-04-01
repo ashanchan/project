@@ -26,7 +26,11 @@ def readParam():
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', ('\n'))
     catalogId = 'APL977-a80en'
-    #catalogId = raw_input("Enter Course CatlogId without extension ")
+    catalogId = raw_input("Enter Course CatlogId without extension ")
+
+    summaryMode = raw_input("Report Mode : Summary [Y/N] ?")
+    summaryMode = False if summaryMode.upper() == 'N' else True
+    
     LOGGER.show('info', ('\n'))
     catalogId = catalogId.strip()
     courseXml = pkgImporter.getFileWithPath('data/'+catalogId+'.xml')
@@ -46,7 +50,7 @@ def readParam():
     else:
         catalogId = None
 
-    return {'catalogId': catalogId, 'courseData': courseData,  'courseProgress': courseProgress}
+    return {'catalogId': catalogId, 'courseData': courseData,  'courseProgress': courseProgress, 'summaryMode': summaryMode}
 
 # ===================================================
 
@@ -55,7 +59,7 @@ def generateReport(catalog):
     lBreaker = ('======================================================================\n')
     qBreaker = ('-------------------------------------\n')
     strLine = ''
-
+    summaryMode = catalog['summaryMode']
     assessedLesson = 0
 
     jsonCourseData = FILE_IO.readData(catalog['courseData'])['course']
@@ -85,19 +89,27 @@ def generateReport(catalog):
 
         if testoutTaken == True:
             for lesson in courseData:
-                strLine += ('Lesson Id\t\t : %s \n' % (lesson['lessonId']))
-                strLine += ('Lesson title\t : %s \n' % (lesson['title']))
-                if lesson['assessment'] == None:
-                    strLine += ('Assessment\t\t : Not Available - Mandatory Lesson \n')
+                if summaryMode == False :
+                    strLine += ('Lesson Id\t\t : %s \n' % (lesson['lessonId']))
+                    strLine += ('Lesson title\t : %s \n' % (lesson['title']))
+
+                if lesson['assessment'] == None :
+                    if summaryMode == False :
+                        strLine += ('Assessment\t\t : Not Available - Mandatory Lesson \n')
                 else:
                     questions = lesson['assessment']['question']
                     assessmentData = normalizeData(plData['testoutData'][aCtr], len(questions))
-                    strLine += ('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] \n' % (len(questions), lesson['assessment']['@poolSize']))
+                    
+                    if summaryMode == False :
+                        strLine += ('Assessment\t\t : Questions Available : [%d] \t Pooled : [%s] \n' % (len(questions), lesson['assessment']['@poolSize']))
+                    
                     qCtr = 0
                     assessedLesson += 1
                     for question in questions:
-                        strLine += (qBreaker)
-                        strLine += ('\t %d %s \n' % ((qCtr+1), question['questionText']['p']))
+                        if summaryMode == False :
+                            strLine += (qBreaker)
+                            strLine += ('\t %d %s \n' % ((qCtr+1), question['questionText']['p']))
+                        
                         cCtr = 0
                         tQctr += 1
                         correctChoice = []
@@ -105,7 +117,10 @@ def generateReport(catalog):
                             isCorrect = choice['@isCorrect'] == 'true'
                             if isCorrect:
                                 correctChoice.append(str(choice['@choiceId']))
-                            strLine += ('\t\t %s\t%s \n' % (choice['@choiceId'], choice['#text']))
+
+                            if summaryMode == False :    
+                                strLine += ('\t\t %s\t%s \n' % (choice['@choiceId'], choice['#text']))
+                            
                             cCtr += 1
                         result = getResult(correctChoice, assessmentData[qCtr]['optionIdx'])
                         if result == 'Correct':
@@ -118,12 +133,14 @@ def generateReport(catalog):
                         for s in assessmentData[qCtr]['optionIdx'] :   
                             sOption.append(str(s))
 
-                        strLine += ('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   \n' % (str(correctChoice), str(sOption), result))
+                        if summaryMode == False :
+                            strLine += ('\t\t\tcorrect : %s \t selected : %s \t result : [%s]   \n' % (str(correctChoice), str(sOption), result))
                         qCtr += 1
 
                     aCtr += 1
 
-                strLine += (lBreaker)
+                if summaryMode == False :
+                    strLine += (lBreaker)
 
         strLine += ('\n\n')
         strLine += ('\t\t*********************************************************\n')
