@@ -1,7 +1,15 @@
 {
-    "python.pythonPath": "/anaconda3/bin/python",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 16,
+    //"python.pythonPath": "/anaconda3/bin/python",
+    "python.pythonPath": "/usr/bin/python",
+    
     "python.autoComplete.addBrackets": true,
     "python.formatting.autopep8Args": [
-        "--max-line-length=200"
-    ]
+        "--max-line-length=300"
+    ],
+    "javascript.format.placeOpenBraceOnNewLineForFunctions": true,
+    "typescript.format.placeOpenBraceOnNewLineForFunctions": true,
+    "typescript.format.placeOpenBraceOnNewLineForControlBlocks": true,
+    "javascript.format.placeOpenBraceOnNewLineForControlBlocks": true
 }
