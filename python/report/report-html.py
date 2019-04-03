@@ -5,14 +5,14 @@ import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
 import util.xml2Json as CONVERTOR
+import datetime
 # ===================================================
 
 
 class userData:
 
-    def __init__(self, header, title, body, footer, mode):
+    def __init__(self, header, body, footer, mode):
         self.header = header
-        self.title = title
         self.body = body
         self.footer = footer
         self.mode = mode
@@ -52,7 +52,7 @@ def readParam():
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', (''))
     catalogId = 'APL977-a80en'
-    summaryMode = 'd'
+    summaryMode = 'c'
 
     #catalogId = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
     #summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S] : ', ['D', 'C', 'S', 'd', 'c', 's'])
@@ -91,7 +91,6 @@ def generateReport(catalog):
 
     for user in jsonProgressData['data']:
         reportHeader = []
-        reportTitle = []
         reportBody = []
         reportCompact = []
         reportFooter = []
@@ -103,7 +102,6 @@ def generateReport(catalog):
         plData = parseUserResult(user['CORE_LESSON'])
         lessonStatus = plData['lessonStatus']
         hasTestOut = str(jsonCourseData['assessment']['@lessonType'] == 'personalizedLearning')
-        #reportHeader.append('<table> <thead> <th>Course Name : [%s] <br> System Id : [%s] </th> <th> Has Assessment : [%s] </th> <th> Pooling : [%s] </th> <th> Randomized On : [%s] </th> </thead>' % (jsonCourseData['@catalogId'], jsonCourseData['@systemId'], hasTestOut, jsonCourseData["assessment"]['@pooling'], jsonCourseData["assessment"]['@randomize'] ))
         reportHeader.append('<h4>User Name : %s %s [%s]</h4>' %(user['FIRSTNAME'], user['LASTNAME'], user['USER_ID']))
         # =========
 
@@ -111,6 +109,7 @@ def generateReport(catalog):
 
         if testoutTaken == True:
             reportBody.append('<table>')
+            reportCompact.append('<table>')
             for lesson in courseData:
                 reportBody.append('<tr class="lessonNode"> <td>Lesson Id</td> <td> %s </td>  <td>Lesson Title</td> <td> %s </td>  </tr>' % (lesson['lessonId'], lesson['title']))
                 lCtr += 1
@@ -122,7 +121,8 @@ def generateReport(catalog):
                     assessmentData = normalizeData(plData['testoutData'][aCtr], len(questions))
                     poolSize = int(lesson['assessment']['@poolSize'])
                     reportBody.append('<tr> <td>Questions Available</td> <td> [%d] </td> <td> Pooled </td> <td> [%s]  </td>  </tr>' % (len(questions), poolSize))
-
+                    reportCompact.append('<tr class="lessonNode"> <td>Lesson Id</td> <td> %s </td>  <td>Lesson Title</td> <td> %s </td>  </tr>' % (lesson['lessonId'], lesson['title']))
+                    reportCompact.append('<tr> <td>Questions Available : [%d] </td> <td> Pooled : [%d] </td>' % (len(questions), poolSize))
                     qCtr = 0
                     assessedLesson += 1
                     for question in questions:
@@ -157,8 +157,9 @@ def generateReport(catalog):
                         qCtr += 1
 
                     aCtr += 1
-                    #reportCompact.append('\t\t\t\t : Correct\t\t : [%s] \t Incorrect\t : [%s]' % (correctCtr, (poolSize - correctCtr)))
+                    reportCompact.append('<td>Correct : [%s]</td> <td>Incorrect : [%s]  </td></tr>' % (correctCtr, (poolSize - correctCtr)))
             reportBody.append('</table>')
+            reportCompact.append('</table>')
 
         reportFooter.append('<br><br><table class="summary"><thead><th colspan="2">Summary</th></thead>')
 
@@ -170,7 +171,6 @@ def generateReport(catalog):
                 status = 'PASSED   '
 
             reportFooter.append('<tr> <td>Total Lesson in the course</td> <td> %d </td> </tr>' % (lCtr))
-            reportFooter.append('<tr> <td class="align-right">Testout Lesson</td> <td> %d </td> </tr>' % (aCtr))
             reportFooter.append('<tr> <td class="align-right">Testout Lesson</td> <td> %d </td> </tr>' % (aCtr))
             reportFooter.append('<tr> <td class="align-right">Mandatory Lesson</td> <td> %d </td> </tr>' % (lCtr-aCtr))
             reportFooter.append('<tr> <td>Total Question in the course</td> <td>%d </td> </tr>' % (tQctr))
@@ -192,11 +192,17 @@ def generateReport(catalog):
         if catalog['summaryMode'] == 'c':
             reportBody = reportCompact
 
-        repo = userData(reportHeader, reportHeader, reportBody, reportFooter, catalog['summaryMode'])
+        repo = userData(reportHeader, reportBody, reportFooter, catalog['summaryMode'])
         printLine += repo.getReport()
+       
 
-    reportFile = catalog['catalogId']
-    reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.txt')
+    reportFile = catalog['catalogId']+'-detail'
+    if catalog['summaryMode'] == 'c':
+        reportFile = catalog['catalogId']+'-compact'
+    elif catalog['summaryMode'] == 's':
+        reportFile = catalog['catalogId']+'-summary'
+
+    reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report.html')
 
     htmlText = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Document</title> <style>body {font-family: Verdana, Geneva, Tahoma, sans-serif;}table {width: 100%; height: 100%;border-spacing: 0.5rem;border-collapse: collapse;}thead {background: blue;}tfoot {background: yellow;} td,th {border: 1px solid #999;padding: 0.5rem;vertical-align: top;width: 25%;} .userNode {background:red;} .lessonNode {background:orange;} .summary{ width:50%; text-align: center; margin:auto;} .align-right{text-align:right;} .not-pooled{background: gray;opacity: 0.5;}</style></head>\n'
     htmlText += '<body>\n'
@@ -204,12 +210,13 @@ def generateReport(catalog):
     htmlText += ('<p>Course Name : %s  <br>System Id : %s </br> Assessment Mode : %s  <br>Pooling : %s  <br>Randomized on : %s</p>' %(jsonCourseData['@catalogId'], jsonCourseData['@systemId'], hasTestOut, jsonCourseData["assessment"]['@pooling'], jsonCourseData["assessment"]['@randomize']))
     
     htmlText += printLine
-    htmlText += '<p class="align-right">Generated on 10th Aug 2020.</p>'
+    htmlText += ('<p class="align-right">Generated on %s</p>' %(datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     htmlText += '\n</body>'
 
+    print(reportFile)
     FILE_IO.writeFile(reportFile, htmlText)
     LOGGER.show('info', ('Report created  %s ' % (reportFile)))
-    #SYSTEM.remove(catalog['courseData'])
+    SYSTEM.remove(catalog['courseData'])
 
 # ===================================================
 
