@@ -49,14 +49,57 @@ def fileExist(fileName):
 
 # ===================================================
 def acceptValidInput(prompt, inputRange):
-    if len(inputRange) > 1 :
+    if len(inputRange) > 1:
         while True:
             val = raw_input(prompt)
             if val.lower() not in inputRange:
                 sys.stdout.flush()
             else:
                 break
-    else :
-        val = raw_input(prompt)       
-            
+    else:
+        val = raw_input(prompt)
+
     return val.lower()
+
+# ===================================================
+
+
+def getUniqueKeyFromList(list, key):
+    unique_list = []
+    for x in list:
+        if x[key] not in unique_list:
+            unique_list.append(x)
+
+    return unique_list
+
+# ===================================================
+
+
+def isUnique(list, key, value):
+    if len(list[key]) == 0 :
+        return True 
+
+    for x in list[key]:
+        if x == value :
+            #print('exist '+value)
+            return False
+       
+    #print('not found '+value)
+    return True
+
+# ===================================================
+
+
+def multikeysort(items, columns):
+    from operator import itemgetter
+    comparers = [((itemgetter(col[1:].strip()), -1) if col.startswith('-') else
+                  (itemgetter(col.strip()), 1)) for col in columns]
+
+    def comparer(left, right):
+        for fn, mult in comparers:
+            result = cmp(fn(left), fn(right))
+            if result:
+                return mult * result
+        else:
+            return 0
+    return sorted(items, cmp=comparer)
