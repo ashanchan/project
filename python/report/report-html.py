@@ -8,14 +8,12 @@ import util.xml2Json as CONVERTOR
 import datetime
 # ===================================================
 
-
 class userData:
 
-    def __init__(self, header, body, footer, analytics, courseData, mode):
+    def __init__(self, header, body, footer, courseData, mode):
         self.header = header
         self.body = body
         self.footer = footer
-        self.analytics = analytics
         self.courseData = courseData
         self.mode = mode
 
@@ -33,38 +31,31 @@ class userData:
         return strLine
 
     def getAnalytics(self):
-        printLine = ''
-        uniqueLesson = SYSTEM.getUniqueKeyFromList(self.analytics, 'lessonId')
-        ctr = 0
-        for lesson in uniqueLesson:
-            uniqueQuestion = SYSTEM.getUniqueKeyFromList(self.analytics[lesson], 'questionId')
-            for question in uniqueQuestion:
-                print('abc')
+        printLine = '<h2>Analytics</h2>'
+        printLine += '<table>'
+        for lesson in self.courseData :
+            printLine += ('<tr><td colspan="2" class="lessonNode">%s</td></tr>' %(lesson['title']))
+            if lesson['assessment'] !=  None :
+                for question in lesson['assessment']['question'] :
+                    printLine += ('<tr><td>%s</td><td>' %(str(question['questionText']['p'])))
+                    tCtr = 0
+                    cCtr = 0
+                    for userDetail in question['userDetail'] :
+                        if userDetail['result'] != 'NA' :
+                            tCtr += 1
+                            if userDetail['result'].upper() == 'PASSED' :
+                                cCtr += 1
+                            printLine += ('<div class="user-detail"><span class="col1">%s</span><span class="col2">%s</span><span class="col3">%s</span></div>' %(userDetail['userId'], userDetail['userName'], userDetail['result']))
 
-            ctr += 1
+                    printLine += '</td></tr>'
+                    printLine += ('<tr> <td></td><td><div class="user-result"><span class="col1">Total [%d]</span><span class="col2">Passed [%d]</span><span class="col3">Not Passed [%d]</span></div></tr>' %(tCtr, cCtr, tCtr-cCtr ))
+        
+            else :
+                printLine += ('<tr><td>Mandatory Lesson</td><td> </td></tr>' )
 
-        reportFile = pkgImporter.getFileWithPath('data/analytics.txt')
-        FILE_IO.writeFile(reportFile, printLine)
+        printLine += '</table>'
+        return (printLine)                    
 
-        # for lesson in self.courseData:
-        #     print(lesson['lessonId'])
-        #     cCtr = 0
-        #     iCtr = 0
-
-        #     for data in report:
-        #         if lesson['lessonId'] == data['lessonId']:
-        #             if data['result'] != 'NA':
-        #                 if data['result'] == 'Passed':
-        #                     cCtr += 1
-        #                 else:
-        #                     iCtr += 1
-
-        #                 print('\t %s  \t%s' % (data['userName'], data['result']))
-
-        #     print ('total [%s], passed [%s], failed [%s]' % (cCtr+iCtr, cCtr, iCtr))
-        #     aCtr +=1
-        #     if aCtr == 3 :
-        #         break
 
 # ===================================================
 
@@ -88,10 +79,10 @@ def readParam():
     LOGGER.show('info', ('#===============================================================================================#'))
     LOGGER.show('info', (''))
     catalogId = 'APL977-a80en'
-    summaryMode = 'c'
+    summaryMode = 'a'
 
-    #catalogId = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
-    #summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary [D/C/S] : ', ['D', 'C', 'S', 'd', 'c', 's'])
+    catalogId = SYSTEM.acceptValidInput('Enter Valid CatlogueId : ', [])
+    summaryMode = SYSTEM.acceptValidInput('Report Mode : Detailed / Compact / Summary / Anayltics[D/C/S/A] : ', ['D', 'C', 'S', 'A', 'd', 'c', 's', 'a'])
 
     LOGGER.show('info', (''))
     catalogId = catalogId.strip()
@@ -124,7 +115,6 @@ def generateReport(catalog):
     jsonProgressData = EXCEL.readData(catalog['courseProgress'])
     courseData = getCourseData(jsonCourseData)
     passingPercent = jsonCourseData["assessment"]['@passingPercentage']
-    reportAnalytics = createAnayticsNode(courseData)
 
     for user in jsonProgressData['data']:
         reportHeader = []
@@ -140,8 +130,6 @@ def generateReport(catalog):
         lessonStatus = plData['lessonStatus']
         hasTestOut = str(jsonCourseData['assessment']['@lessonType'] == 'personalizedLearning')
         reportHeader.append('<h4>User Name : %s %s [%s]</h4>' % (user['FIRSTNAME'], user['LASTNAME'], user['USER_ID']))
-        reportAnalytics['userId'].append(user['USER_ID'])
-        reportAnalytics['userName'].append(user['FIRSTNAME'] + ' ' + user['LASTNAME'])
 
         # =========
 
@@ -178,19 +166,11 @@ def generateReport(catalog):
                             if isCorrect:
                                 correctChoice.append(str(choice['@choiceId']))
 
-                            reportBody.append('%s %s <br>' % (choice['@choiceId'], choice['#text']))
+                            reportBody.append('<div class="row"> <span class="col1">%s</span> <span class="col2"> %s </span></div>' % (choice['@choiceId'], choice['#text']))
                             cCtr += 1
 
                         result = getResult(correctChoice, assessmentData[qCtr]['optionIdx'])
-
-                        # isUniqueLesson = SYSTEM.isUnique(reportAnalytics, 'lessonId', lesson['lessonId'])
-                        # if isUniqueLesson:
-                        #         reportAnalytics['lessonId'].append(lesson['lessonId'])
-
-                        # isUniqueQuestion = SYSTEM.isUnique(reportAnalytics['quesitonId'], '@questionId', question['@questionId'])
-                        # if isUniqueLesson:
-                        #         reportAnalytics['questionId'].append(questions['@questionId'])
-
+                        
                         if result == 'Passed':
                             score += 1
                             mCtr += 1
@@ -202,6 +182,13 @@ def generateReport(catalog):
                         sOption = []
                         for s in assessmentData[qCtr]['optionIdx']:
                             sOption.append(str(s))
+
+                        
+                        userDetail = {'userId' : user['USER_ID'], 'userName' : user['FIRSTNAME']+ ' ' +user['LASTNAME'], 'result': result } 
+                        if question.has_key('userDetail') == False :
+                            question['userDetail'] = []
+                        
+                        question['userDetail'].append(userDetail)
 
                         reportBody.append('<br>Correct : %s Selected : %s Result : %s </td></tr>' % (str(correctChoice), str(sOption), result))
                         qCtr += 1
@@ -242,36 +229,38 @@ def generateReport(catalog):
         if catalog['summaryMode'] == 'c':
             reportBody = reportCompact
 
-        repo = userData(reportHeader, reportBody, reportFooter, reportAnalytics, courseData, catalog['summaryMode'])
+        repo = userData(reportHeader, reportBody, reportFooter, courseData, catalog['summaryMode'])
         printLine += repo.getReport()
 
-    for z in reportAnalytics['lessonId']:
-        print(z)
-
+    
     reportFile = catalog['catalogId']+'-detail'
     if catalog['summaryMode'] == 'c':
         reportFile = catalog['catalogId']+'-compact'
     elif catalog['summaryMode'] == 's':
         reportFile = catalog['catalogId']+'-summary'
+    elif catalog['summaryMode'] == 'a':
+        reportFile = catalog['catalogId']+'-analytics'    
 
     reportFile = pkgImporter.getFileWithPath('data/'+reportFile+'-report')
 
-    htmlText = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Document</title> <style>body {font-family: Verdana, Geneva, Tahoma, sans-serif;}table {width: 100%; height: 100%;border-spacing: 0.5rem;border-collapse: collapse;}thead {background: blue;}tfoot {background: yellow;} td,th {border: 1px solid #999;padding: 0.5rem;vertical-align: top;width: 25%;} .userNode {background:red;} .lessonNode {background:orange;} .summary{ width:50%; text-align: center; margin:auto;} .align-right{text-align:right;} .not-pooled{background: gray;opacity: 0.5;}</style></head>\n'
+    htmlText = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge"><title>Document</title> <style>body {font-family: Verdana, Geneva, Tahoma, sans-serif;}table {width: 100%; height: 100%;border-spacing: 0.5rem;border-collapse: collapse;}thead {background: blue;}tfoot {background: yellow;} td,th {border: 1px solid #999;padding: 0.5rem;vertical-align: top;width: 25%;} .userNode {background:red;} .lessonNode {background:orange;} .summary{ width:50%; text-align: center; margin:auto;} .align-right{text-align:right;} .not-pooled{background: gray;opacity: 0.5;} .row{display: inline-table; width:100%;} .row .col1{width:10%;display: -webkit-inline-box;} .row .col2{width:90%;display: -webkit-inline-box;} .col1, .col2, .col3 {width:33%;}</style></head>\n'
     htmlText += '<body>\n'
     htmlText += ('<h2>%s</h2>' % jsonCourseData['title'])
     htmlText += ('<p>Course Name : %s  <br>System Id : %s </br> Assessment Mode : %s  <br>Pooling : %s  <br>Randomized on : %s</p>' % (jsonCourseData['@catalogId'], jsonCourseData['@systemId'], hasTestOut, jsonCourseData["assessment"]['@pooling'], jsonCourseData["assessment"]['@randomize']))
 
-    htmlText += printLine
+    if catalog['summaryMode'] != 'a' :
+        htmlText += printLine
+
+    if catalog['summaryMode'] == 'a' or catalog['summaryMode'] == 'd' :
+        htmlText +=  repo.getAnalytics()
+
     htmlText += ('<p class="align-right">Generated on %s</p>' % (datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
     htmlText += '\n</body>'
 
     FILE_IO.writeFile(reportFile+'.html', htmlText)
 
-    convertHtmlToPdf(reportFile)
-
     LOGGER.show('info', ('Report created  %s ' % (reportFile)))
     SYSTEM.remove(catalog['courseData'])
-    #repo.getAnalytics()
 
 # ===================================================
 
@@ -366,19 +355,6 @@ def convertHtmlToPdf(fileName):
 
 
 # ===================================================
+     
 
-def createAnayticsNode(courseData) :
-    reportAnalytics = {'lessonId': [], 'title': [], 'quesitonId': [], 'question': [], 'userId' : [], 'userName' : [], 'result': []}
-    for lesson in courseData:
-        reportAnalytics['lessonId'].append(lesson['lessonId'])
-        reportAnalytics['title'].append(lesson['title'])
-        if lesson['assessment'] :
-            questions = lesson['assessment']['question']
-            for question in questions :
-                reportAnalytics['quesitonId'].append(str(question['@questionId']))
-                reportAnalytics['question'].append(question['questionText']['p'])
-
-    return reportAnalytics
-
-# ===================================================    
 init()
