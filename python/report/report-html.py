@@ -259,7 +259,7 @@ def generateReport(catalog):
 
     FILE_IO.writeFile(reportFile+'.html', htmlText)
 
-    LOGGER.show('info', ('Report created  %s ' % (reportFile)))
+    LOGGER.show('info', ('Report created  %s.html ' % (reportFile)))
     SYSTEM.remove(catalog['courseData'])
 
 # ===================================================
