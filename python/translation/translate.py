@@ -5,14 +5,13 @@ import util.system as SYSTEM
 import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
-
 # ===================================================
 
 
 def init():
     SYSTEM.clear()
+    MODE = readParam()
     LOGGER.show('info', ('========================================================================================================='))
-    LOGGER.show('info', (' Starting Translation Process'))
     pointer = ['data/resourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
 
     resourceUrl = pkgImporter.getFileWithPath(pointer[0])
@@ -27,12 +26,26 @@ def init():
         mappedRef = createKeyReferences(resourceDataObj['data'], constantDataObj['data'])
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
         createFolders(transRef['language'])
-        generateTranslation(transRef, mappedRef)
+        generateTranslation(transRef, mappedRef, MODE)
         LOGGER.show('info', (' Exiting Translation Process'))
         LOGGER.show('info', ('========================================================================================================='))
 
     LOGGER.reset()
 
+# ===================================================
+
+
+def readParam():
+    SYSTEM.clear()
+    LOGGER.show('info', ('#===============================================================================================#'))
+    LOGGER.show('info', ('#\tStarting Translation Process\t\t\t\t\t\t\t\t#'))
+    LOGGER.show('info', ('#\t\tFor Processing System needs two files in data folder \t\t\t\t#'))
+    LOGGER.show('info', ('#\t\t1. resourceBundle.xlsx\t\t [Eg. latest copied from the Perforce] \t\t\t#'))
+    LOGGER.show('info', ('#\t\t2. fluidx_constant_key.xlsx\t [Eg. Mapped constants lists] \t#'))
+    LOGGER.show('info', ('#===============================================================================================#'))
+    LOGGER.show('info', (''))
+    mode = SYSTEM.acceptValidInput('For Fluidx : 2 or 3 [2/3] : ', [2, 3])
+    return mode
 # ===================================================
 
 
@@ -109,18 +122,32 @@ def createFolders(language):
 # ===================================================
 
 
-def generateTranslation(transRef, mappedRef):
+def generateTranslation(transRef, mappedRef, MODE):
     idx = 0
     for lang in transRef['language']:
-        fileName = pkgImporter.getFileWithPath('messages/'+str(lang)+'/message.json')
+        fileName = pkgImporter.getFileWithPath('messages/'+str(lang)+'/message.')
+        fileName = fileName+'js' if MODE == 2 else fileName+'json'
         LOGGER.show('info', ('\t\tCreating file %d %s  ' % (idx, fileName)))
         idx += 1
-        FILE_IO.writeJson(fileName, transRef['data'][lang])
+        if MODE == 2 :
+            FILE_IO.writeJson(fileName, transRef['data'][lang])
+        else :    
+            FILE_IO.writeJson(fileName, transRef['data'][lang])
 
+    
     LOGGER.show('info', ('\tTranslation Generated for %d keys ' % (len(transRef['data']['en']))))
     LOGGER.show('info', ('\t\tMapped for %d keys ' % (len(transRef['data']['en']) - mappedRef['notMapped'])))
     LOGGER.show('info', ('\t\tNot Mapped for %d keys ' % mappedRef['notMapped']))
     LOGGER.show('info', ('\tTranslation successful for %d files \t' % len(transRef['language'])))
+
+    compressFolder = pkgImporter.getDirPath()+'/messages'
+    if MODE == 2 :
+        targetFileName = pkgImporter.getDirPath()+'/Fluidx_2/messages'
+    else :
+        targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages'
+
+    LOGGER.show('info', (' Archiving  %d files to %s.zip \t' % (len(transRef['language']), targetFileName)))
+    SYSTEM.compressFolder(compressFolder, targetFileName)
 
 
 # ===================================================

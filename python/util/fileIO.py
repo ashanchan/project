@@ -14,6 +14,31 @@ def writeJson(fileName, data):
 # ===================================================
 
 
+def writeJs(fileName, data):
+    strLine = ''
+    strLine += '(function(ns, window) {\n'
+    strLine += '\tvar messages = new Object();\n'
+
+    sortedData = sorted(data)
+
+    for line in sortedData:
+        strLine += ('\tmessages["%s"] = "%s";\n' %(line, data[line]))
+
+
+    strLine += '\tns.data.commonMessages = messages;\n'
+    strLine += '\ttry{\n'
+    strLine += '\t\tif(module && module.exports)module.exports = messages;\n'
+    strLine += '\t}catch(e){}\n'
+    strLine += '})(window.com.lrn.courseware, window)'
+
+    print(fileName)
+    with codecs.open(fileName, "w", encoding="utf-8") as my_file:
+        my_file.write(strLine)
+ 
+ 
+# ===================================================
+
+
 def validate(filename):
     with open(filename) as file:
         try:
@@ -22,21 +47,21 @@ def validate(filename):
             LOGGER.show('error', ('\t\t\tInvalid JSON '))
         else:
             LOGGER.show('info', ('\t\t\tValidiation Successful '))
-            
+
 
 # ===================================================
 
 
 def readData(fileName):
     with open(fileName, 'r') as fp:
-        obj = json.load(fp)
+        obj=json.load(fp)
     return obj
 
 # ===================================================
 
 
 def writeFile(fileName, data):
-    file = codecs.open(fileName, 'w', 'utf-8')
+    file=codecs.open(fileName, 'w', 'utf-8')
     file.write(data)
     file.close()
 # ===================================================

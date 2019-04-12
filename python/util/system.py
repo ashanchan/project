@@ -52,18 +52,36 @@ def acceptValidInput(prompt, inputRange):
     if len(inputRange) > 1:
         while True:
             val = raw_input(prompt)
-            if val.lower() not in inputRange:
-                sys.stdout.flush()
-            else:
-                break
+            isInt = isInteger(val)
+            if isInt :
+                if int(val) not in inputRange:
+                    sys.stdout.flush()
+                else:
+                    break
+            else :    
+                if val.lower() not in inputRange:
+                    sys.stdout.flush()
+                else:
+                    break
     else:
         val = raw_input(prompt)
 
-    return val.lower()
+
+    if isInt:
+        return int(val)
+    else :    
+        return val.lower()
 
 # ===================================================
 
+def isInteger(val) :
+    try:
+        val = int(val)
+        return True
+    except ValueError:
+        return False
 
+# ===================================================    
 def getUniqueKeyFromList(list, key):
     unique_list = []
     for x in list:
@@ -76,14 +94,14 @@ def getUniqueKeyFromList(list, key):
 
 
 def isUnique(list, key, value):
-    if len(list[key]) == 0 :
-        return True 
+    if len(list[key]) == 0:
+        return True
 
     for x in list[key]:
-        if x == value :
+        if x == value:
             #print('exist '+value)
             return False
-       
+
     #print('not found '+value)
     return True
 
@@ -103,3 +121,9 @@ def multikeysort(items, columns):
         else:
             return 0
     return sorted(items, cmp=comparer)
+
+# ===================================================
+
+
+def compressFolder(sourceDir, targetFileName):
+    shutil.make_archive(targetFileName, 'zip', sourceDir)
