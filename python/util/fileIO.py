@@ -68,14 +68,14 @@ def writeFile(fileName, data):
 
 
 def downloadFromS3Bucket(bucketName, fileName, targetName):
-    s3 = boto3.client('s3', aws_access_key_id='AKIAIBF2BWIKB6UA2TQA', aws_secret_access_key='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')
+    s3 = boto3.client('s3', aws_access_key_id='AKIAQGTVTTP5G7XG6IWJ', aws_secret_access_key='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')
     s3.download_file(bucketName, fileName, targetName)
 
 # ===================================================
 
 
 def upload2S3Bucket(bucketName, fileName, targetName):
-    s3 = boto3.resource('s3')
+    s3 = boto3.resource('s3', aws_access_key_id='AKIAQGTVTTP5G7XG6IWJ', aws_secret_access_key='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')
     data = open(fileName, 'rb')
     s3.Bucket(bucketName).put_object(Key=targetName, Body=data)
 
