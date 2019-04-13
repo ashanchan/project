@@ -67,7 +67,7 @@ def writeFile(fileName, data):
 # ===================================================
 
 
-def upload2S3Bucket(bucketName, fileName):
+def upload2S3Bucket(bucketName, fileName, targetName):
     s3 = boto3.client('s3',aws_access_key_id='AKIAIBF2BWIKB6UA2TQA',aws_secret_access_key='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')
     s3.upload_file(fileName, bucketName, fileName)
 

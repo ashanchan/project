@@ -27,7 +27,7 @@ def init():
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
         createFolders(transRef['language'])
         generateTranslation(transRef, mappedRef, MODE)
-        copy2Bucket(MODE)
+        copy2Bucket()
         LOGGER.show('info', ('\tExiting Translation Process'))
         LOGGER.show('info', ('========================================================================================================='))
 
@@ -111,15 +111,11 @@ def createLanguageMapping(mappedRef, resourceData, constantData):
 def createFolders(language):
     LOGGER.show('info', ('\tCreating Translation folder  '))
     rootDir = pkgImporter.getDirPath()
-
-    try:
-        SYSTEM.rmtree(rootDir+'/messages')
-    except:
-        LOGGER.show('warning', ('no dir found'))
-    finally:
-        for lang in language:
-            folder = rootDir+'/messages/'+str(lang)
-            SYSTEM.makedirs(folder)
+   
+    for lang in language:
+        folder = rootDir+'/messages/'+str(lang)
+        SYSTEM.makedirs(folder)
+        
 # ===================================================
 
 
@@ -130,40 +126,31 @@ def generateTranslation(transRef, mappedRef, MODE):
         fileName = fileName+'js' if MODE == 2 else fileName+'json'
         LOGGER.show('none', ('\t\tCreating file %d %s  ' % (idx, fileName)))
         idx += 1
-        if MODE == 2:
-            FILE_IO.writeJson(fileName, transRef['data'][lang])
-        else:
-            FILE_IO.writeJson(fileName, transRef['data'][lang])
 
     LOGGER.show('info', ('\tTranslation Generated for %d keys ' % (len(transRef['data']['en']))))
     LOGGER.show('info', ('\t\tMapped for %d keys ' % (len(transRef['data']['en']) - mappedRef['notMapped'])))
     LOGGER.show('info', ('\t\tNot Mapped for %d keys ' % mappedRef['notMapped']))
-    LOGGER.show('info', ('\tTranslation successful for %d files \t' % len(transRef['language'])))
+    LOGGER.show('info', ('\tTranslation successful for %d files ' % len(transRef['language'])))
 
     compressFolder = pkgImporter.getDirPath()+'/messages'
-    if MODE == 2:
-        targetFileName = pkgImporter.getDirPath()+'/Fluidx_2/messages'
-    else:
-        targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages'
-
+   
     LOGGER.show('info', (''))
-    LOGGER.show('info', ('\tArchiving  %d files to %s.zip \t' % (len(transRef['language']), targetFileName)))
-    SYSTEM.compressFolder(compressFolder, targetFileName)
+    LOGGER.show('info', ('\tArchiving  %d files to %s.zip ' % (len(transRef['language']), compressFolder)))
+    SYSTEM.compressFolder(compressFolder, compressFolder)
 
 # ===================================================
-def copy2Bucket(MODE) :
+def copy2Bucket() :
     notMappedFileName = pkgImporter.getFileWithPath('not_mapped.txt')
-    if MODE == 2:
-        targetFileName = pkgImporter.getDirPath()+'/Fluidx_2/messages.zip'
-    else:
-        targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages.zip'
+    targetFileName = pkgImporter.getDirPath()+'/messages.zip'
 
     LOGGER.show('info', (''))
     LOGGER.show('info', ('========================================================================================================='))
-    LOGGER.show('info', ('\tCopying file to aws bucket  %s  \t' % (notMappedFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName)
-    LOGGER.show('info', ('\tCopying file to aws bucket  %s  \t' % (targetFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', targetFileName)
+    LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (notMappedFileName)))
+    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName, 'not_mapped.txt')
+    LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (targetFileName)))
+    FILE_IO.upload2S3Bucket('project-translation', targetFileName, 'messages.zip')
+    LOGGER.show('info', ('\tCleaning Repositories' ))
+    SYSTEM.rmtree(pkgImporter.getDirPath()+'/messages')
 
 # ===================================================
 init()

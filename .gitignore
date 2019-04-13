@@ -9,4 +9,4 @@
 /python/temp
 /python/translation/messages
 /python/.vscode/settings.json
-/python/**/*.zip
+/python/translation/*.zip
