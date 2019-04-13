@@ -27,6 +27,7 @@ def init():
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
         createFolders(transRef['language'])
         generateTranslation(transRef, mappedRef, MODE)
+        copy2Bucket(MODE)
         LOGGER.show('info', ('\tExiting Translation Process'))
         LOGGER.show('info', ('========================================================================================================='))
 
@@ -42,7 +43,7 @@ def readParam():
     LOGGER.show('info', ('\t\tFor Processing System needs two files in data folder'))
     LOGGER.show('info', ('\t\t1. ResourceBundle.xlsx\t\t [Eg. latest copied from the Perforce]'))
     LOGGER.show('info', ('\t\t2. fluidx_constant_key.xlsx\t [Eg. Mapped constants lists]'))
-    LOGGER.show('info', ('========================================================================================================='))    
+    LOGGER.show('info', ('========================================================================================================='))
     LOGGER.show('info', (''))
     mode = SYSTEM.acceptValidInput('For Fluidx : 2 or 3 [2/3] : ', [2, 3])
     return mode
@@ -129,27 +130,40 @@ def generateTranslation(transRef, mappedRef, MODE):
         fileName = fileName+'js' if MODE == 2 else fileName+'json'
         LOGGER.show('none', ('\t\tCreating file %d %s  ' % (idx, fileName)))
         idx += 1
-        if MODE == 2 :
+        if MODE == 2:
             FILE_IO.writeJson(fileName, transRef['data'][lang])
-        else :    
+        else:
             FILE_IO.writeJson(fileName, transRef['data'][lang])
 
-    
     LOGGER.show('info', ('\tTranslation Generated for %d keys ' % (len(transRef['data']['en']))))
     LOGGER.show('info', ('\t\tMapped for %d keys ' % (len(transRef['data']['en']) - mappedRef['notMapped'])))
     LOGGER.show('info', ('\t\tNot Mapped for %d keys ' % mappedRef['notMapped']))
     LOGGER.show('info', ('\tTranslation successful for %d files \t' % len(transRef['language'])))
 
     compressFolder = pkgImporter.getDirPath()+'/messages'
-    if MODE == 2 :
+    if MODE == 2:
         targetFileName = pkgImporter.getDirPath()+'/Fluidx_2/messages'
-    else :
+    else:
         targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages'
 
     LOGGER.show('info', (''))
     LOGGER.show('info', ('\tArchiving  %d files to %s.zip \t' % (len(transRef['language']), targetFileName)))
     SYSTEM.compressFolder(compressFolder, targetFileName)
 
+# ===================================================
+def copy2Bucket(MODE) :
+    notMappedFileName = pkgImporter.getFileWithPath('not_mapped.txt')
+    if MODE == 2:
+        targetFileName = pkgImporter.getDirPath()+'/Fluidx_2/messages.zip'
+    else:
+        targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages.zip'
+
+    LOGGER.show('info', (''))
+    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', ('\tCopying file to aws bucket  %s  \t' % (notMappedFileName)))
+    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName)
+    LOGGER.show('info', ('\tCopying file to aws bucket  %s  \t' % (targetFileName)))
+    FILE_IO.upload2S3Bucket('project-translation', targetFileName)
 
 # ===================================================
 init()
