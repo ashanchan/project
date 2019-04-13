@@ -19,8 +19,8 @@ def init():
 
     resourceDataObj = EXCEL.readData(resourceUrl)
     constantDataObj = EXCEL.readData(constantUrl)
-    LOGGER.show('info', ('\tFile Name : %s \t\t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
-    LOGGER.show('info', ('\tFile Name : %s \t\t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
     LOGGER.show('info', ('\tCreating References '))
     if len(resourceDataObj) != 0:
         mappedRef = createKeyReferences(resourceDataObj['data'], constantDataObj['data'])
