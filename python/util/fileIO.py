@@ -45,8 +45,8 @@ def validate(filename):
             json.load(file)  # put JSON-data to a variable
         except json.JSONDecodeError:
             LOGGER.show('error', ('\t\t\tInvalid JSON '))
-        else:
-            LOGGER.show('info', ('\t\t\tValidiation Successful '))
+        else:            
+            LOGGER.show('none', ('\t\t\tValidiation Successful '))
 
 
 # ===================================================

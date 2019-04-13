@@ -9,7 +9,7 @@ def show(mode, msg):
         SYSTEM.talkBack('say "Fatal Error" ')
     elif mode == 'warning':
         print(Fore.YELLOW + msg)
-    else:
+    elif mode == 'info':
         print(Fore.GREEN + msg)
 # ===================================================
 

@@ -51,7 +51,7 @@ def fileExist(fileName):
 def acceptValidInput(prompt, inputRange):
     if len(inputRange) > 1:
         while True:
-            val = raw_input(prompt)
+            val = input(prompt)
             isInt = isInteger(val)
             if isInt :
                 if int(val) not in inputRange:
@@ -64,7 +64,7 @@ def acceptValidInput(prompt, inputRange):
                 else:
                     break
     else:
-        val = raw_input(prompt)
+        val = input(prompt)
 
 
     if isInt:

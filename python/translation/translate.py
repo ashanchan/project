@@ -12,22 +12,22 @@ def init():
     SYSTEM.clear()
     MODE = readParam()
     LOGGER.show('info', ('========================================================================================================='))
-    pointer = ['data/resourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
+    pointer = ['data/ResourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
 
     resourceUrl = pkgImporter.getFileWithPath(pointer[0])
     constantUrl = pkgImporter.getFileWithPath(pointer[1])
 
     resourceDataObj = EXCEL.readData(resourceUrl)
     constantDataObj = EXCEL.readData(constantUrl)
-    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
-    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s \t\t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s \t\t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
     LOGGER.show('info', ('\tCreating References '))
     if len(resourceDataObj) != 0:
         mappedRef = createKeyReferences(resourceDataObj['data'], constantDataObj['data'])
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
         createFolders(transRef['language'])
         generateTranslation(transRef, mappedRef, MODE)
-        LOGGER.show('info', (' Exiting Translation Process'))
+        LOGGER.show('info', ('\tExiting Translation Process'))
         LOGGER.show('info', ('========================================================================================================='))
 
     LOGGER.reset()
@@ -37,12 +37,12 @@ def init():
 
 def readParam():
     SYSTEM.clear()
-    LOGGER.show('info', ('#===============================================================================================#'))
-    LOGGER.show('info', ('#\tStarting Translation Process\t\t\t\t\t\t\t\t#'))
-    LOGGER.show('info', ('#\t\tFor Processing System needs two files in data folder \t\t\t\t#'))
-    LOGGER.show('info', ('#\t\t1. resourceBundle.xlsx\t\t [Eg. latest copied from the Perforce] \t\t\t#'))
-    LOGGER.show('info', ('#\t\t2. fluidx_constant_key.xlsx\t [Eg. Mapped constants lists] \t#'))
-    LOGGER.show('info', ('#===============================================================================================#'))
+    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', ('\tStarting Translation Process'))
+    LOGGER.show('info', ('\t\tFor Processing System needs two files in data folder'))
+    LOGGER.show('info', ('\t\t1. ResourceBundle.xlsx\t\t [Eg. latest copied from the Perforce]'))
+    LOGGER.show('info', ('\t\t2. fluidx_constant_key.xlsx\t [Eg. Mapped constants lists]'))
+    LOGGER.show('info', ('========================================================================================================='))    
     LOGGER.show('info', (''))
     mode = SYSTEM.acceptValidInput('For Fluidx : 2 or 3 [2/3] : ', [2, 3])
     return mode
@@ -127,7 +127,7 @@ def generateTranslation(transRef, mappedRef, MODE):
     for lang in transRef['language']:
         fileName = pkgImporter.getFileWithPath('messages/'+str(lang)+'/message.')
         fileName = fileName+'js' if MODE == 2 else fileName+'json'
-        LOGGER.show('info', ('\t\tCreating file %d %s  ' % (idx, fileName)))
+        LOGGER.show('none', ('\t\tCreating file %d %s  ' % (idx, fileName)))
         idx += 1
         if MODE == 2 :
             FILE_IO.writeJson(fileName, transRef['data'][lang])
@@ -146,7 +146,8 @@ def generateTranslation(transRef, mappedRef, MODE):
     else :
         targetFileName = pkgImporter.getDirPath()+'/Fluidx_3/messages'
 
-    LOGGER.show('info', (' Archiving  %d files to %s.zip \t' % (len(transRef['language']), targetFileName)))
+    LOGGER.show('info', (''))
+    LOGGER.show('info', ('\tArchiving  %d files to %s.zip \t' % (len(transRef['language']), targetFileName)))
     SYSTEM.compressFolder(compressFolder, targetFileName)
 
 
