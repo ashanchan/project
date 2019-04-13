@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 import pkgImporter
 import util.system as SYSTEM
 import util.system as SYSTEM
@@ -111,10 +111,15 @@ def createLanguageMapping(mappedRef, resourceData, constantData):
 def createFolders(language):
     LOGGER.show('info', ('\tCreating Translation folder  '))
     rootDir = pkgImporter.getDirPath()
-   
-    for lang in language:
-        folder = rootDir+'/messages/'+str(lang)
-        SYSTEM.makedirs(folder)
+
+    try:
+        SYSTEM.rmtree(rootDir+'/messages')
+    except:
+        LOGGER.show('warning', ('no dir found'))
+    finally:
+        for lang in language:
+            folder = rootDir+'/messages/'+str(lang)
+            SYSTEM.makedirs(folder)
         
 # ===================================================
 
@@ -146,9 +151,9 @@ def copy2Bucket() :
     LOGGER.show('info', (''))
     LOGGER.show('info', ('========================================================================================================='))
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (notMappedFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName, 'not_mapped.txt')
+    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName, 'output/not_mapped.txt')
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (targetFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', targetFileName, 'messages.zip')
+    FILE_IO.upload2S3Bucket('project-translation', targetFileName, 'output/messages.zip')
     LOGGER.show('info', ('\tCleaning Repositories' ))
     SYSTEM.rmtree(pkgImporter.getDirPath()+'/messages')
 
