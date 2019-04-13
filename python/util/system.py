@@ -53,12 +53,12 @@ def acceptValidInput(prompt, inputRange):
         while True:
             val = input(prompt)
             isInt = isInteger(val)
-            if isInt :
+            if isInt:
                 if int(val) not in inputRange:
                     sys.stdout.flush()
                 else:
                     break
-            else :    
+            else:
                 if val.lower() not in inputRange:
                     sys.stdout.flush()
                 else:
@@ -66,22 +66,24 @@ def acceptValidInput(prompt, inputRange):
     else:
         val = input(prompt)
 
-
     if isInt:
         return int(val)
-    else :    
+    else:
         return val.lower()
 
 # ===================================================
 
-def isInteger(val) :
+
+def isInteger(val):
     try:
         val = int(val)
         return True
     except ValueError:
         return False
 
-# ===================================================    
+# ===================================================
+
+
 def getUniqueKeyFromList(list, key):
     unique_list = []
     for x in list:
@@ -127,3 +129,9 @@ def multikeysort(items, columns):
 
 def compressFolder(sourceDir, targetFileName):
     shutil.make_archive(targetFileName, 'zip', sourceDir)
+
+# ===================================================
+
+
+def repeat2Length(string_to_expand, length):
+    return (string_to_expand * (int(length/len(string_to_expand))+1))[:length]

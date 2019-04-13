@@ -5,23 +5,25 @@ import util.system as SYSTEM
 import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
+lineBreak = SYSTEM.repeat2Length('=', 130) 
 # ===================================================
 
 
 def init():
     SYSTEM.clear()
+    createDataFolder()
+    pointer = ['data/ResourceBundle.xlsx', 'data/fluidx_constant_key.xlsx']
+
     MODE = readParam()
-    LOGGER.show('info', ('========================================================================================================='))
-    pointer = ['data/ResourceBundle.xlsx', 'data/fluidx_constant_key.xlsx', 'data/sample_resource.xlsx', 'data/sample_constant_key.xlsx']
+    resourceDataObj = readExcelData(pointer[0])
+    constantDataObj = readExcelData(pointer[1])
 
-    resourceUrl = pkgImporter.getFileWithPath(pointer[0])
-    constantUrl = pkgImporter.getFileWithPath(pointer[1])
-
-    resourceDataObj = EXCEL.readData(resourceUrl)
-    constantDataObj = EXCEL.readData(constantUrl)
-    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (resourceUrl, len(resourceDataObj['data']))))
-    LOGGER.show('info', ('\tFile Name : %s \t\t>> Total Rows read : %d ' % (constantUrl, len(constantDataObj['data']))))
+    LOGGER.show('info', (lineBreak))
+    LOGGER.show('info', ('\tFile Name : %s      >> Total Rows read : %d ' % (pointer[0], len(resourceDataObj['data']))))
+    LOGGER.show('info', ('\tFile Name : %s >> Total Rows read : %d ' % (pointer[1], len(constantDataObj['data']))))
+    LOGGER.show('info', (lineBreak))    
     LOGGER.show('info', ('\tCreating References '))
+
     if len(resourceDataObj) != 0:
         mappedRef = createKeyReferences(resourceDataObj['data'], constantDataObj['data'])
         transRef = createLanguageMapping(mappedRef['mapReference'], resourceDataObj['data'], constantDataObj['data'])
@@ -29,24 +31,49 @@ def init():
         generateTranslation(transRef, mappedRef, MODE)
         copy2Bucket()
         LOGGER.show('info', ('\tExiting Translation Process'))
-        LOGGER.show('info', ('========================================================================================================='))
+        LOGGER.show('info', (lineBreak))
 
     LOGGER.reset()
 
 # ===================================================
 
 
+def createDataFolder():
+    rootDir = pkgImporter.getDirPath()
+    tempFolder = ['/messages', '/data']
+
+    for folder in tempFolder:
+        try:
+            SYSTEM.rmtree(rootDir+folder)
+        except:
+            LOGGER.show('warning', ('no dir found'))
+        finally:
+            SYSTEM.makedirs(rootDir+folder)
+
+
+# ===================================================
 def readParam():
     SYSTEM.clear()
-    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', (lineBreak))
     LOGGER.show('info', ('\tStarting Translation Process'))
-    LOGGER.show('info', ('\t\tFor Processing System needs two files in data folder'))
-    LOGGER.show('info', ('\t\t1. ResourceBundle.xlsx\t\t [Eg. latest copied from the Perforce]'))
-    LOGGER.show('info', ('\t\t2. fluidx_constant_key.xlsx\t [Eg. Mapped constants lists]'))
-    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', ('\t\tFor Processing, System needs two files in aws s3 bucket'))
+    LOGGER.show('info', ('\t\t1. s3/project-translation/data/ResourceBundle.xlsx\t\t [Eg. latest copied from the Perforce]'))
+    LOGGER.show('info', ('\t\t2. s3/project-translation/data/fluidx_constant_key.xlsx\t\t [Eg. Mapped constants lists]'))
+    LOGGER.show('info', (lineBreak))
     LOGGER.show('info', (''))
     mode = SYSTEM.acceptValidInput('For Fluidx : 2 or 3 [2/3] : ', [2, 3])
+    LOGGER.show('info', (''))
+    LOGGER.show('info', (lineBreak))
+    LOGGER.show('info', ('\tConnecting aws server... Please wait...'))
+    
     return mode
+# ===================================================
+
+
+def readExcelData(pointer):
+    fileName = pkgImporter.getFileWithPath(pointer)
+    FILE_IO.downloadFromS3Bucket('project-translation', pointer, fileName)
+    return EXCEL.readData(fileName)
 # ===================================================
 
 
@@ -109,6 +136,7 @@ def createLanguageMapping(mappedRef, resourceData, constantData):
 
 
 def createFolders(language):
+    LOGGER.show('info', (lineBreak))
     LOGGER.show('info', ('\tCreating Translation folder  '))
     rootDir = pkgImporter.getDirPath()
 
@@ -120,7 +148,7 @@ def createFolders(language):
         for lang in language:
             folder = rootDir+'/messages/'+str(lang)
             SYSTEM.makedirs(folder)
-        
+
 # ===================================================
 
 
@@ -138,24 +166,27 @@ def generateTranslation(transRef, mappedRef, MODE):
     LOGGER.show('info', ('\tTranslation successful for %d files ' % len(transRef['language'])))
 
     compressFolder = pkgImporter.getDirPath()+'/messages'
-   
-    LOGGER.show('info', (''))
+
+    LOGGER.show('info', (lineBreak))
     LOGGER.show('info', ('\tArchiving  %d files to %s.zip ' % (len(transRef['language']), compressFolder)))
     SYSTEM.compressFolder(compressFolder, compressFolder)
 
 # ===================================================
-def copy2Bucket() :
+
+
+def copy2Bucket():
     notMappedFileName = pkgImporter.getFileWithPath('not_mapped.txt')
     targetFileName = pkgImporter.getDirPath()+'/messages.zip'
 
-    LOGGER.show('info', (''))
-    LOGGER.show('info', ('========================================================================================================='))
+    LOGGER.show('info', (lineBreak))
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (notMappedFileName)))
     FILE_IO.upload2S3Bucket('project-translation', notMappedFileName, 'output/not_mapped.txt')
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (targetFileName)))
     FILE_IO.upload2S3Bucket('project-translation', targetFileName, 'output/messages.zip')
-    LOGGER.show('info', ('\tCleaning Repositories' ))
+    LOGGER.show('info', ('\tCleaning Repositories'))
     SYSTEM.rmtree(pkgImporter.getDirPath()+'/messages')
+    SYSTEM.rmtree(pkgImporter.getDirPath()+'/data')
+
 
 # ===================================================
 init()

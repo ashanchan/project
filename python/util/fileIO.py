@@ -1,7 +1,6 @@
 import json
 import codecs
 import boto3
-import os
 import util.log as LOGGER
 # ===================================================
 
@@ -65,6 +64,13 @@ def writeFile(fileName, data):
     file = codecs.open(fileName, 'w', 'utf-8')
     file.write(data)
     file.close()
+# ===================================================
+
+
+def downloadFromS3Bucket(bucketName, fileName, targetName):
+    s3 = boto3.client('s3', aws_access_key_id='AKIAIBF2BWIKB6UA2TQA', aws_secret_access_key='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')
+    s3.download_file(bucketName, fileName, targetName)
+
 # ===================================================
 
 

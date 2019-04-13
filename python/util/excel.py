@@ -8,12 +8,12 @@ def readData(url):
     # import excel sheet and get refernce of first sheet
     data = []
     try:
-        LOGGER.show('info',('\tOpening data file %s' % url))
+        LOGGER.show('info',('\t\tOpening data file %s' % url))
         workBook = xlrd.open_workbook(url, on_demand=True)
         workSheet = workBook.sheet_by_index(0)
         keys = [v.value for v in workSheet.row(0)]
 
-        LOGGER.show('info',('\t\tProcessing data file '))
+        LOGGER.show('info',('\t\t\tProcessing data file '))
         for row_number in range(workSheet.nrows):
             row_data = {}
             for col_number, cell in enumerate(workSheet.row(row_number)):
