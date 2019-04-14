@@ -6,6 +6,7 @@ import util.excel as EXCEL
 import util.fileIO as FILE_IO
 import util.log as LOGGER
 lineBreak = SYSTEM.repeat2Length('=', 130) 
+s3Bucket = 'aws-ashtra-translation'
 # ===================================================
 
 
@@ -72,7 +73,7 @@ def readParam():
 
 def readExcelData(pointer):
     fileName = pkgImporter.getFileWithPath(pointer)
-    FILE_IO.downloadFromS3Bucket('project-translation', pointer, fileName)
+    FILE_IO.downloadFromS3Bucket(s3Bucket, pointer, fileName)
     return EXCEL.readData(fileName)
 # ===================================================
 
@@ -180,9 +181,9 @@ def copy2Bucket():
 
     LOGGER.show('info', (lineBreak))
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (notMappedFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', notMappedFileName, 'output/not_mapped.txt')
+    FILE_IO.upload2S3Bucket(s3Bucket, notMappedFileName, 'output/not_mapped.txt')
     LOGGER.show('info', ('\tCopying file to aws bucket  %s  ' % (targetFileName)))
-    FILE_IO.upload2S3Bucket('project-translation', targetFileName, 'output/messages.zip')
+    FILE_IO.upload2S3Bucket(s3Bucket, targetFileName, 'output/messages.zip')
     LOGGER.show('info', ('\tCleaning Repositories'))
     SYSTEM.rmtree(pkgImporter.getDirPath()+'/messages')
     SYSTEM.rmtree(pkgImporter.getDirPath()+'/data')
