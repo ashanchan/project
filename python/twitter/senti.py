@@ -18,7 +18,7 @@ api = tweepy.API(auth)
 
 def init():
     readParam()
-    
+
 # ===================================================
 
 
@@ -35,6 +35,7 @@ def readParam():
 
 # ===================================================
 
+
 def findSentiment(topic):
     public_tweets = api.search(topic)
     ctr = 0
@@ -45,16 +46,16 @@ def findSentiment(topic):
         LOGGER.show('info', ('%d \t%s\n \t%s \t %s' % (ctr,  tweet.text, analysis.sentiment.polarity, analysis.sentiment.subjectivity)))
         polarity += analysis.sentiment.polarity
         subjectivity += analysis.sentiment.subjectivity
-        print ('\n')
+        print('\n')
         ctr += 1
 
     LOGGER.show('info', (lineBreak))
-    LOGGER.show('info', ('\tFinal Analysis of topic %s against %d opinion \t Polarity [%f] \t  subjectivity [%f]' %(topic, ctr, polarity, subjectivity)))
+    LOGGER.show('info', ('\tFinal Analysis of topic %s against %d opinion \t Polarity [%f] \t  subjectivity [%f]' % (topic, ctr, polarity, subjectivity)))
     LOGGER.show('info', (lineBreak))
     print('\n')
     needed = SYSTEM.acceptValidInput('Continue More Analysis : [Y/N] : ', ['Y', 'y', 'N', 'n'])
 
-    if needed.upper() == 'Y' :
+    if needed.upper() == 'Y':
         readParam()
 
 
