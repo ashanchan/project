@@ -1,3 +1,4 @@
+/*jshint sub:true*/
 var API_URL = 'https://bgjredujuf.execute-api.ap-south-1.amazonaws.com/prod/entries';
 var findSentiment = '';
 //=================================================
@@ -7,21 +8,28 @@ function getTweetSentiment() {
         $('#sentiment-loader').removeClass('hidden');
         $('#sentiment-holder').addClass("hidden");
         $.ajax({
-            type: 'GET',
+            method: 'POST',
             url: API_URL,
+            dataType: 'json',
+            data: JSON.stringify({ 'findSentiment': findSentiment }),
+            headers: {
+                'Content-Type': 'application/json'
+            },
             success: function(data) {
                 showTweet(data);
             }
         });
     }
+
     event.preventDefault();
 }
 
 //=================================================
 
 function showTweet(data) {
-    $('#entries').html('');
     $('#results').html('');
+    $('#table').html('');
+
     dCtr = data.length;
     pCtr = 0;
     sCtr = 0;
