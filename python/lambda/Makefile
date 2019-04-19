@@ -1,27 +1,17 @@
-PROJECT = lambda
-VIRTUAL_ENV = env
-FUNCTION_NAME = testMyLambda
-AWS_REGION = us-east-1
-FUNCTION_HANDLER = lambda_handler
-LAMBDA_ROLE = arn:aws:iam::865376845454:role/service-role/myLambdaFunction-role-gfqpfviv
+build : clean-pyc
 
-install : virtual
-build : build_package_tmp zip
+clean-pyc:
+    find . -name '*.pyc' -exec rm --force {} +
+    find . -name '*.pyo' -exec rm --force {} +
+   name '*~' -exec rm --force  {} 
 
-virtual :
-	@echo '--> Setup and activate virtual env'
-	if test ! -d '$(VIRTUAL_ENV)' ; then \
-		pip install virtualenv; \
-		virtualenv $(VIRTUAL_ENV);\
-	fi
-	@echo ''
+clean-build:
+    rm --force --recursive build/
+    rm --force --recursive dist/
+    rm --force --recursive *.egg-info
 
-clean_package :
-	rm -f ./package/*/**	
+isort:
+    sh -c "isort --skip-glob=.tox --recursive . "
 
-build_package_tmp:
-	mkdir -p ./package/tmp/lib 
-	cp -a ./$(PROJECT)/. ./package/tmp/
-
-zip:
-	cd ./package/tmp && zip -r ../$(PROJECT).zip .
+lint:
+    flake8 --exclude=.tox
