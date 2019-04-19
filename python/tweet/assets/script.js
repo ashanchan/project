@@ -1,16 +1,19 @@
 var API_URL = 'https://bgjredujuf.execute-api.ap-south-1.amazonaws.com/prod/entries';
-
+var findSentiment = '';
 //=================================================
 function getTweetSentiment() {
-    $('#sentiment-loader').removeClass('hidden');
-    $('#sentiment-holder').addClass("hidden");
-    $.ajax({
-        type: 'GET',
-        url: API_URL,
-        success: function(data) {
-            showTweet(data);
-        }
-    });
+    findSentiment = $('#findSentiment').val();
+    if (findSentiment.trim().length > 0) {
+        $('#sentiment-loader').removeClass('hidden');
+        $('#sentiment-holder').addClass("hidden");
+        $.ajax({
+            type: 'GET',
+            url: API_URL,
+            success: function(data) {
+                showTweet(data);
+            }
+        });
+    }
     event.preventDefault();
 }
 
@@ -41,7 +44,7 @@ function showTweet(data) {
     line += '</table>';
 
     $('#table').append(line);
-    $('#results').append('<div class="w3-bar-item">Sampled Tweet : ' + dCtr + '</div>');
+    $('#results').append('<div class="w3-bar-item">Sampled Tweet : ' + findSentiment + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Samples : ' + dCtr + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Polarity : ' + (pCtr / dCtr) + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Subjectivity : ' + (sCtr / dCtr) + '</div>');
