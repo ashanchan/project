@@ -12,3 +12,4 @@
 /python/translation/*.zip
 /python/lambda-test/**/*
 /python/archieve/**/*
+/python/pkg*/**/*
