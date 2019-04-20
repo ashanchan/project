@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <link rel="stylesheet" href="./assets/style.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src='./assets/script.js'></script>
+</head>
+
+<body>
+    <br>
+    <div class="w3-container">
+        <form>
+            <div class="w3-card-4">
+                <div class="w3-row">
+                    <div class="w3-full w3-container w3-green">
+                        <h4>Enter Twitter Tag for Sentiment processing</h4>
+                        <p><input class="w3-input w3-border w3-sand" id='findSentiment' name="findSentiment" type="text" placeholder="Eg. 2019 Indian Elections, India, World of imaginations"></p>
+                        <p><button class="w3-btn w3-lime" onclick="getTweetSentiment()" id='submitButton'>Find Sentiments</button></p>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <hr>
+        <div id="data-loader" class="hidden w3-panel w3-blue">
+            Processing... please wait...
+        </div>
+
+        <div id="data-holder" class="hidden">
+            <div class="w3-card-4">
+                <div class="w3-row">
+                    <div id="table">
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="w3-card-4 final-card">
+                <div class="w3-row">
+                    <div class="w3-green w3-half">
+                        <div class="w3-card-4">
+                            <img src="./assets/img_snowtops.jpg" alt="Alps" style="width:100%">
+                            <div class="w3-container w3-center">
+                                <p>The Mighty Himalya where I trek...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w3-half">
+                        <div class="w3-panel w3-yellow w3-topbar w3-bottombar w3-border-amber">
+                            <p><b>Sentiment Analysis</b> : The sentiment property returns a namedtuple of the form Sentiment(polarity, subjectivity).<br><br>The polarity score is a float within the range [-1.0, 1.0].<br>The subjectivity is a float within
+                                the range [0.0, 1.0] where 0.0 is very objective and 1.0 is very subjective. </p>
+                        </div>
+
+                        <div class="w3-bar-block w3-green">
+                            <div id="results">
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+
+</html>

@@ -1,31 +1,16 @@
 /*jshint sub:true*/
-var API_URL = 'https://e4bj5aj4d8.execute-api.ap-south-1.amazonaws.com/prod';
-var findSentiment = '';
+query = '';
 //=================================================
 function getTweetSentiment() {
-    findSentiment = $('#findSentiment').val();
-    if (findSentiment.trim().length > 0) {
-        $('#sentiment-loader').removeClass('hidden');
-        $('#sentiment-holder').addClass("hidden");
-        $.ajax({
-            method: 'POST',
-            url: API_URL,
-            dataType: 'json',
-            data: JSON.stringify({ 'findSentiment': findSentiment }),
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            success: function(data) {
-                showTweet(data);
-            }
-        });
+    query = $('#findSentiment').val();
+    if (validateQuery(query)) {
+        dataQuery = JSON.stringify({ 'findSentiment': query });
+        $('#data-loader').removeClass('hidden');
+        $('#data-holder').addClass("hidden");
+        connectToLambda('https://e4bj5aj4d8.execute-api.ap-south-1.amazonaws.com/prod', dataQuery, showTweet);
     }
-
-    event.preventDefault();
 }
-
 //=================================================
-
 function showTweet(data) {
     $('#results').html('');
     $('#table').html('');
@@ -52,13 +37,52 @@ function showTweet(data) {
     line += '</table>';
 
     $('#table').append(line);
-    $('#results').append('<div class="w3-bar-item">Sampled Tweet : ' + findSentiment + '</div>');
+    $('#results').append('<div class="w3-bar-item">Sampled Tweet : ' + query + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Samples : ' + dCtr + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Polarity : ' + (pCtr / dCtr) + '</div>');
     $('#results').append('<div class="w3-bar-item">Total Subjectivity : ' + (sCtr / dCtr) + '</div>');
 
-    $('#sentiment-loader').addClass("hidden");
-    $('#sentiment-holder').removeClass("hidden");
+    $('#data-loader').addClass("hidden");
+    $('#data-holder').removeClass("hidden");
 }
-
+//=================================================
+function getTranslation() {
+    query = $('input[name=mode]:checked').val();
+    if (validateQuery(query)) {
+        dataQuery = JSON.stringify({ 'mode': query });
+        $('#data-loader').removeClass('hidden');
+        $('#data-holder').addClass("hidden");
+        connectToLambda('https://ld10wcycm2.execute-api.ap-south-1.amazonaws.com/prod', query, showTranslation);
+    }
+    event.preventDefault();
+}
+//=================================================
+function showTranslation(data) {
+    $('#results').append('<div class="w3-bar-item"><a href= "' + data[0]['filePath'] + '" target="_blank">no-translation.txt</div>');
+    $('#results').append('<div class="w3-bar-item"><a href= "' + data[1]['filePath'] + '" target="_blank">messages.zip</div>');
+    $('#data-loader').addClass("hidden");
+    $('#data-holder').removeClass("hidden");
+}
+//=================================================
+function validateQuery(query) {
+    event.preventDefault();
+    return query.trim().length > 0;
+}
+//=================================================
+function connectToLambda(url, query, callback) {
+    if (query.trim().length > 0) {
+        $.ajax({
+            method: 'POST',
+            url: url,
+            dataType: 'json',
+            data: query,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            success: function(data) {
+                callback(data);
+            }
+        });
+    }
+}
 //=================================================

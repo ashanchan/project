@@ -9,7 +9,8 @@
     ],
     "python.autoComplete.extraPaths": [
         "./lib"
-    ],    
+    ],
+    "python.linting.pep8Args": ["--ignore=E303, E302, E501, E226, W291, W293"],
     "javascript.format.placeOpenBraceOnNewLineForFunctions": true,
     "typescript.format.placeOpenBraceOnNewLineForFunctions": true,
     "typescript.format.placeOpenBraceOnNewLineForControlBlocks": true,

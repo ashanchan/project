@@ -9,65 +9,41 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="./assets/style.css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script type="text/javascript" src='./assets/script.js'></script>
 </head>
 
 <body>
-    <br>
-    <div class="w3-container">
-        <form>
-            <div class="w3-card-4">
-                <div class="w3-row">
-                    <div class="w3-full w3-container w3-green">
-                        <h4>Enter Twitter Tag for Sentiment processing</h4>
-                        <p><input class="w3-input w3-border w3-sand" id='findSentiment' name="findSentiment" type="text" placeholder="Eg. 2019 Indian Elections, India, World of imaginations"></p>
-                        <p><button class="w3-btn w3-blue" onclick="getTweetSentiment()" id='submitButton'>Find Sentiments</button></p>
-                    </div>
-                </div>
-            </div>
-        </form>
+    <div class="w3-row">
+        <div class="w3-card-4 w3-quarter" style="margin-right:15px;">
+            <header class="w3-container w3-green">
+                <h3>Analytics on Sentiment</h3>
+            </header>
 
-        <hr>
-        <div id="sentiment-loader" class="hidden w3-panel w3-blue">
-            Processing... please wait...
+            <div class="w3-container">
+                <p>Find out Sentiments like Polarity and Subjectivity by processing Tweets</p>
+            </div>
+
+            <footer class="w3-container w3-green">
+                <h5><a href='sentiment.html'>Click here</a></h5>
+            </footer>
         </div>
 
-        <div id="sentiment-holder" class="hidden">
-            <div class="w3-card-4">
-                <div class="w3-row">
-                    <div id="table">
-                    </div>
-                </div>
+        <div class="w3-card-4 w3-quarter">
+            <header class="w3-container w3-blue">
+                <h3>Translations</h3>
+            </header>
+
+            <div class="w3-container">
+                <p>Create Translations for Fluidx Architecture</p>
             </div>
-            <hr>
-            <div class="w3-card-4 final-card">
-                <div class="w3-row">
-                    <div class="w3-green w3-half">
-                        <div class="w3-card-4">
-                            <img src="./assets/img_snowtops.jpg" alt="Alps" style="width:100%">
-                            <div class="w3-container w3-center">
-                                <p>The Mighty Himalya where I trek...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w3-half">
-                        <div class="w3-panel w3-yellow w3-topbar w3-bottombar w3-border-amber">
-                            <p><b>Sentiment Analysis</b> : The sentiment property returns a namedtuple of the form Sentiment(polarity, subjectivity).<br><br>The polarity score is a float within the range [-1.0, 1.0].<br>The subjectivity is a float within
-                                the range [0.0, 1.0] where 0.0 is very objective and 1.0 is very subjective. </p>
-                        </div>
 
-                        <div class="w3-bar-block w3-green">
-                            <div id="results">
-
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <footer class="w3-container w3-blue">
+                <h5><a href='translation.html'>Click here</a></h5>
+            </footer>
         </div>
+
     </div>
-    </div>
+
+    <hr>
 </body>
 
 </html>
