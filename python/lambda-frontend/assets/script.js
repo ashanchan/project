@@ -52,12 +52,13 @@ function getTranslation() {
         dataQuery = JSON.stringify({ 'mode': query });
         $('#data-loader').removeClass('hidden');
         $('#data-holder').addClass("hidden");
-        connectToLambda('https://ld10wcycm2.execute-api.ap-south-1.amazonaws.com/prod', query, showTranslation);
+        connectToLambda('https://ld10wcycm2.execute-api.ap-south-1.amazonaws.com/prod', dataQuery, showTranslation);
     }
     event.preventDefault();
 }
 //=================================================
 function showTranslation(data) {
+    $('#results').html('');
     $('#results').append('<div class="w3-bar-item"><a href= "' + data[0]['filePath'] + '" target="_blank">no-translation.txt</div>');
     $('#results').append('<div class="w3-bar-item"><a href= "' + data[1]['filePath'] + '" target="_blank">messages.zip</div>');
     $('#data-loader').addClass("hidden");
