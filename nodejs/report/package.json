@@ -1,0 +1,17 @@
+{
+  "name": "report",
+  "version": "1.0.0",
+  "description": "Gernerate Report of Personalization Module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ashok Anchan",
+  "license": "ISC",
+  "dependencies": {
+    "minimist": "^1.2.5",
+    "readline-sync": "^1.4.10",
+    "xlsx-to-json": "^0.3.0",
+    "xml2js": "^0.4.23"
+  }
+}
