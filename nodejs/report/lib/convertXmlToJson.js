@@ -13,9 +13,11 @@ function init(fileName) {
     try {
         rawXmlData = fs.readFileSync(options.input);
         xmlData = rawXmlData.toString();
+        //== need to find all <br> and replace it with<br/>
         parser = new xml2js.Parser();
         parser.parseString(xmlData.substring(0, xmlData.length), function (err, result) {
             if (err) {
+                console.log(err);
                 sendData('onXmlDataError', undefined);
             } else {
                 sendData('onXmlDataParsed', result);
