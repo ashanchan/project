@@ -2,7 +2,9 @@ var notifier = require('./notifier');
 var fs = require('fs');
 var dataHolder;
 var htmlStr = '';
-var verbose = false;
+var verbose = true;
+var refPointer = [];
+
 var report = {
     header: {},
     body: {},
@@ -12,13 +14,14 @@ var report = {
 function init(dHolder) {
     dataHolder = dHolder;
     createLessonNode(dataHolder.xmlData.course);
+    mapResults(dataHolder.excelData, report.body);
     generateReport();
     createReport();
 }
 //==================================================================
 function createLessonNode(data) {
     var lCtr = data.topic.length,
-        qCtr, qNode,
+        qCtr, qNode, lPtr = 0,
         hasAssessment, isMandatory, lessonNode;
     report.header.systemId = data.$.systemId;
     report.header.baseCatalogId = data.$.baseCatalogId;
@@ -36,18 +39,58 @@ function createLessonNode(data) {
             lessonNode = {};
             lessonNode.lessonId = data.topic[l].$.lessonId;
             lessonNode.title = data.topic[l].title[0];
+            lessonNode.passed = [];
+            lessonNode.failed = [];
+            lessonNode.userId = '';
+            lessonNode.userName = '';
             lessonNode.question = [];
             qCtr = data.topic[l].assessment[0].question.length;
             for (var q = 0; q < qCtr; q++) {
                 qNode = {};
                 qNode.id = data.topic[l].assessment[0].question[q].$.pageid;
+                refPointer[qNode.id] = {
+                    lessonIdx: lPtr,
+                    questionIdx: q
+                };
                 qNode.type = data.topic[l].assessment[0].question[q].$.type === 'checkAll' ? 'checkbox' : 'radio';
                 qNode.questionText = data.topic[l].assessment[0].question[q].questionText;
+                qNode.passed = [];
+                qNode.failed = [];
+                qNode.userId = '';
+                qNode.userName = '';
                 qNode.choice = data.topic[l].assessment[0].question[q].choice;
                 lessonNode.question[q] = qNode;
             }
             report.body.lesson.push(lessonNode);
+            lPtr++;
         }
+    }
+}
+//==================================================================
+function mapResults(data, report) {
+    var uCtr = data.length,
+        uData, ctoData, resultData, qCtr, cCtr, rCtr, ref, uid, uName;
+    uCtr = 1;
+    try {
+        for (var u = 0; u < uCtr; u++) {
+            uData = data[u].CORE_LESSON.split('$')[1];
+            uid = data[u].USER_ID;
+            uName = data[u].LASTNAME + ' ' + data[u].FIRSTNAME;
+            ctoData = uData.split('|');
+            qData = ctoData[8].split(',');
+            resultData = ctoData[11].split(',');
+            qCtr = qData.length;
+            for (var q = 0; q < qCtr; q++) {
+                ref = refPointer[qData[q]];
+                if (resultData[q]) {
+                    report.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uid);
+                } else {
+                    report.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uid);
+                }
+            }
+        }
+    } catch (err) {
+        sendData('onReportDataProcessError', err.message);
     }
 }
 //==================================================================
@@ -83,7 +126,8 @@ function createHeader() {
     htmlStr += '</td>';
     htmlStr += '\t\t</tr>';
     htmlStr += '\t</table>';
-    console.log(report.header.assessment);
+    console.log(refPointer['101'], ' >>> ', refPointer['110']);
+    //console.log(report.header.assessment);
 }
 //==================================================================
 function createBody(data, idx) {
@@ -139,7 +183,7 @@ function createReport() {
     var targetFile = './data/' + dataHolder.fileData.dataFile + '-report.html';
     fs.writeFile(targetFile, htmlStr, 'utf-8', function (err) {
         if (err) {
-            sendData('onReportDataError', null);
+            sendData('onReportDataError', err.message);
         } else {
             sendData('onReportCompleted', null);
         }
@@ -148,6 +192,11 @@ function createReport() {
 //==================================================================
 function sendData(eventId, data) {
     notifier.emit(eventId, data);
+}
+//==================================================================
+function stripHTMLTags(str) {
+    var strTagStrippedText = str.toString().replace(/<\/?[^>]+(>|$)/g, '');
+    return strTagStrippedText;
 }
 //==================================================================
 module.exports.init = init;
