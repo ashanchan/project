@@ -14,7 +14,7 @@ var report = {
 function init(dHolder) {
     dataHolder = dHolder;
     createLessonNode(dataHolder.xmlData.course);
-    mapResults(dataHolder.excelData, report.body);
+    mapResults(dataHolder.excelData);
     generateReport();
     createReport();
 }
@@ -67,7 +67,7 @@ function createLessonNode(data) {
     }
 }
 //==================================================================
-function mapResults(data, report) {
+function mapResults(data) {
     var uCtr = data.length,
         uData, ctoData, resultData, qCtr, cCtr, rCtr, ref, uid, uName;
     uCtr = 1;
@@ -82,10 +82,11 @@ function mapResults(data, report) {
             qCtr = qData.length;
             for (var q = 0; q < qCtr; q++) {
                 ref = refPointer[qData[q]];
+                console.log(ref);
                 if (resultData[q]) {
-                    report.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uid);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uid);
                 } else {
-                    report.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uid);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uid);
                 }
             }
         }
@@ -153,6 +154,9 @@ function createBody(data, idx) {
             extra = '[' + data.question[q].id + '] ';
         }
         htmlStr += '<h3 class="question">' + extra + data.question[q].questionText[0].p + '</h3>';
+        if (verbose) {
+            htmlStr = '[' + data.question[q].id + '] ';
+        }
         htmlStr += '<div><ul>';
         oCtr = data.question[q].choice.length;
         isRadio = data.question[q].type === 'radio';
