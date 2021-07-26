@@ -69,8 +69,7 @@ function createLessonNode(data) {
 //==================================================================
 function mapResults(data) {
     var uCtr = data.length,
-        uData, ctoData, resultData, qCtr, cCtr, rCtr, ref, uid, uName;
-    uCtr = 1;
+        uData, ctoData, resultData, qCtr, lessonCompleted, rCtr, ref, uid, uName;
     try {
         for (var u = 0; u < uCtr; u++) {
             uData = data[u].CORE_LESSON.split('$')[1];
@@ -79,15 +78,22 @@ function mapResults(data) {
             ctoData = uData.split('|');
             qData = ctoData[8].split(',');
             resultData = ctoData[11].split(',');
+            completedData = ctoData[12].split(',');
             qCtr = qData.length;
             for (var q = 0; q < qCtr; q++) {
                 ref = refPointer[qData[q]];
-                console.log(ref);
-                if (resultData[q]) {
+                if (resultData[q] === 'P') {
                     report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uid);
                 } else {
                     report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uid);
                 }
+            }
+            console.log(completedData[u]);
+            lessonCompleted = completedData[u].split('_')[1];
+            if (lessonCompleted === 'P') {
+                report.body.lesson[ref.lessonIdx].passed.push(uid);
+            } else {
+                report.body.lesson[ref.lessonIdx].failed.push(uid);
             }
         }
     } catch (err) {
@@ -124,11 +130,10 @@ function createHeader() {
         htmlStr += '<p>' + report.header.description + '</p>';
         htmlStr += '<p> <b>modified on</b> : [' + report.header.modified + '] <b>System Id</b> : [' + report.header.systemId + '] <b>Catalog Id</b> :[' + report.header.catalogId + ']</p>';
     }
+    htmlStr += '<p> <b>Testout Mode</b> : [' + report.header.assessment[0].$.testOutMode + '] <b>Testout Level</b> :[' + report.header.assessment[0].$.testOutMode + '] <b>Randomize</b> : [' + report.header.assessment[0].$.randomize + '] <b>Pooling</b> : [' + report.header.assessment[0].$.pooling + ']</p>';
     htmlStr += '</td>';
     htmlStr += '\t\t</tr>';
     htmlStr += '\t</table>';
-    console.log(refPointer['101'], ' >>> ', refPointer['110']);
-    //console.log(report.header.assessment);
 }
 //==================================================================
 function createBody(data, idx) {
@@ -143,6 +148,10 @@ function createBody(data, idx) {
         extra = '<span class="lessonId"> [' + data.lessonId + ']</span> ';
     }
     hStr += '<h2>' + data.title + extra + '</h2>';
+    if (verbose) {
+        htmlStr += '<div><b>Attempted By</b> : [' + Number(data.passed.length + data.failed.length) + '] <b>Total Passed</b> : [' + Number(data.passed.length) + '] <b>Total Not Passed</b> : [' + Number(data.failed.length) + ']</div>';
+        htmlStr += '<div><b>Passed</b> : [' + data.passed + '] <b>Not Passed</b> : [' + data.failed + ']</div>';
+    }
     htmlStr += '\t<table>\n';
     htmlStr += '\t\t<tr>\n';
     htmlStr += '\t\t\t<th id="' + idx + '">' + hStr + '</th>\n';
@@ -155,7 +164,8 @@ function createBody(data, idx) {
         }
         htmlStr += '<h3 class="question">' + extra + data.question[q].questionText[0].p + '</h3>';
         if (verbose) {
-            htmlStr = '[' + data.question[q].id + '] ';
+            htmlStr += '<div><b>Attempted By</b> : [' + Number(data.question[q].passed.length + data.question[q].failed.length) + '] <b>Total Passed</b> : [' + Number(data.question[q].passed.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[q].failed.length) + ']</div>';
+            htmlStr += '<div><b>Passed</b> : [' + data.question[q].passed + '] <b>Not Passed</b> : [' + data.question[q].failed + ']</div>';
         }
         htmlStr += '<div><ul>';
         oCtr = data.question[q].choice.length;
