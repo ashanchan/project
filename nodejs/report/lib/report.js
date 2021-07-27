@@ -4,6 +4,11 @@ var dataHolder;
 var htmlStr = '';
 var verbose = true;
 var refPointer = [];
+var userCount = {
+    total: 0,
+    completed: 0,
+    skipped: 0
+};
 
 var report = {
     header: {},
@@ -39,10 +44,10 @@ function createLessonNode(data) {
             lessonNode = {};
             lessonNode.lessonId = data.topic[l].$.lessonId;
             lessonNode.title = data.topic[l].title[0];
-            lessonNode.passed = [];
-            lessonNode.failed = [];
-            lessonNode.userId = '';
-            lessonNode.userName = '';
+            lessonNode.passedId = [];
+            lessonNode.failedId = [];
+            lessonNode.passedName = [];
+            lessonNode.failedName = [];
             lessonNode.question = [];
             qCtr = data.topic[l].assessment[0].question.length;
             for (var q = 0; q < qCtr; q++) {
@@ -54,10 +59,10 @@ function createLessonNode(data) {
                 };
                 qNode.type = data.topic[l].assessment[0].question[q].$.type === 'checkAll' ? 'checkbox' : 'radio';
                 qNode.questionText = data.topic[l].assessment[0].question[q].questionText;
-                qNode.passed = [];
-                qNode.failed = [];
-                qNode.userId = '';
-                qNode.userName = '';
+                qNode.passedId = [];
+                qNode.failedId = [];
+                qNode.passedName = [];
+                qNode.failedName = [];
                 qNode.choice = data.topic[l].assessment[0].question[q].choice;
                 lessonNode.question[q] = qNode;
             }
@@ -69,13 +74,19 @@ function createLessonNode(data) {
 //==================================================================
 function mapResults(data) {
     var uCtr = data.length,
-        uData, ctoData, resultData, qCtr, completedData, rCtr, ref, uId, uName, qData, lCtr, lId;
+        uData, ctoData, resultData, qCtr, completedData, ref, uId, uName, qData;
     try {
+        userCount.total = uCtr;
         for (var u = 0; u < uCtr; u++) {
             uData = data[u].CORE_LESSON.split('$')[1];
             uId = data[u].USER_ID;
             uName = data[u].LASTNAME + ' ' + data[u].FIRSTNAME;
             ctoData = uData.split('|');
+            if (ctoData[13] === 'S') {
+                userCount.skipped++;
+                continue;
+            }
+            userCount.completed++;
             qData = ctoData[8].split(',');
             resultData = ctoData[11].split(',');
             completedData = ctoData[12].split(',');
@@ -83,21 +94,40 @@ function mapResults(data) {
             for (var q = 0; q < qCtr; q++) {
                 ref = refPointer[qData[q]];
                 if (resultData[q] === 'P') {
-                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uId);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passedId.push(uId);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passedName.push(uName);
                 } else {
-                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uId);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failedId.push(uId);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failedName.push(uName);
                 }
             }
-            // console.log(completedData[u]);
-            // lessonCompleted = completedData[u].split('_')[1];
-            // if (lessonCompleted === 'P') {
-            //     report.body.lesson[ref.lessonIdx].passed.push(uId);
-            // } else {
-            //     report.body.lesson[ref.lessonIdx].failed.push(uId);
-            // }
+            checkLessonCompletion(completedData, uId, uName);
         }
     } catch (err) {
         sendData('onReportDataProcessError', err.message);
+    }
+}
+//==================================================================
+function checkLessonCompletion(completedData, uId, uName) {
+    var lCtr = report.body.lesson.length,
+        lessonCompleted, cCtr, lId;
+    for (var l = 0; l < lCtr; l++) {
+        lId = report.body.lesson[l].lessonId.split('_')[1];
+        cCtr = completedData.length;
+        for (var c = 0; c < cCtr; c++) {
+            lessonCompleted = completedData[c].split('_');
+            if (lId === lessonCompleted[0]) {
+                if (lessonCompleted[1] === 'P') {
+                    report.body.lesson[l].passedId.push(uId);
+                    report.body.lesson[l].passedName.push(uName);
+                } else {
+                    report.body.lesson[l].failedId.push(uId);
+                    report.body.lesson[l].failedName.push(uName);
+                }
+                completedData.splice(c, 1);
+                break;
+            }
+        }
     }
 }
 //==================================================================
@@ -130,7 +160,8 @@ function createHeader() {
         htmlStr += '<p>' + report.header.description + '</p>';
         htmlStr += '<p> <b>modified on</b> : [' + report.header.modified + '] <b>System Id</b> : [' + report.header.systemId + '] <b>Catalog Id</b> :[' + report.header.catalogId + ']</p>';
     }
-    htmlStr += '<p> <b>Testout Mode</b> : [' + report.header.assessment[0].$.testOutMode + '] <b>Testout Level</b> :[' + report.header.assessment[0].$.testOutMode + '] <b>Randomize</b> : [' + report.header.assessment[0].$.randomize + '] <b>Pooling</b> : [' + report.header.assessment[0].$.pooling + ']</p>';
+    htmlStr += '<div class="extra"><p><b>Testout Mode</b> : [' + report.header.assessment[0].$.testOutMode + '] <b>Testout Level</b> :[' + report.header.assessment[0].$.testOutMode + '] <b>Randomize</b> : [' + report.header.assessment[0].$.randomize + '] <b>Pooling</b> : [' + report.header.assessment[0].$.pooling + ']</p></div>';
+    htmlStr += '<div class="extra"><p><b>Total User</b> : [' + userCount.total + '] <b>Total Attempted</b> : [' + userCount.completed + '] <b>Total Skipped</b> : [' + userCount.skipped + '] </p></div > ';
     htmlStr += '</td>';
     htmlStr += '\t\t</tr>';
     htmlStr += '\t</table>';
@@ -144,13 +175,11 @@ function createBody(data, idx) {
         extra = '',
         isCorrect = true,
         isRadio = true;
+
+    hStr += '<h2>' + data.title + '</h2>';
     if (verbose) {
-        extra = '<span class="lessonId"> [' + data.lessonId + ']</span> ';
-    }
-    hStr += '<h2>' + data.title + extra + '</h2>';
-    if (verbose) {
-        htmlStr += '<div><b>Attempted By</b> : [' + Number(data.passed.length + data.failed.length) + '] <b>Total Passed</b> : [' + Number(data.passed.length) + '] <b>Total Not Passed</b> : [' + Number(data.failed.length) + ']</div>';
-        htmlStr += '<div><b>Passed</b> : [' + data.passed + '] <b>Not Passed</b> : [' + data.failed + ']</div>';
+        hStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.passedId.length + data.failedId.length) + '] <b>Total Passed</b> : [' + Number(data.passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.failedId.length) + ']</div>';
+        hStr += '<div class="extra"><b>Passed</b> : [' + data.passedId + '] <b>Not Passed</b> : [' + data.failedId + ']</div>';
     }
     htmlStr += '\t<table>\n';
     htmlStr += '\t\t<tr>\n';
@@ -164,8 +193,8 @@ function createBody(data, idx) {
         }
         htmlStr += '<h3 class="question">' + extra + data.question[q].questionText[0].p + '</h3>';
         if (verbose) {
-            htmlStr += '<div><b>Attempted By</b> : [' + Number(data.question[q].passed.length + data.question[q].failed.length) + '] <b>Total Passed</b> : [' + Number(data.question[q].passed.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[q].failed.length) + ']</div>';
-            htmlStr += '<div><b>Passed</b> : [' + data.question[q].passed + '] <b>Not Passed</b> : [' + data.question[q].failed + ']</div>';
+            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.question[q].passedId.length + data.question[q].failedId.length) + '] <b>Total Passed</b> : [' + Number(data.question[q].passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[q].failedId.length) + ']</div>';
+            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.question[q].passedId + '] <b>Not Passed</b> : [' + data.question[q].failedId + ']</div>';
         }
         htmlStr += '<div><ul>';
         oCtr = data.question[q].choice.length;
@@ -206,11 +235,6 @@ function createReport() {
 //==================================================================
 function sendData(eventId, data) {
     notifier.emit(eventId, data);
-}
-//==================================================================
-function stripHTMLTags(str) {
-    var strTagStrippedText = str.toString().replace(/<\/?[^>]+(>|$)/g, '');
-    return strTagStrippedText;
 }
 //==================================================================
 module.exports.init = init;
