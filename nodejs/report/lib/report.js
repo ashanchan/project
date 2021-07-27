@@ -27,6 +27,7 @@ function init(dHolder) {
 function createLessonNode(data) {
     var lCtr = data.topic.length,
         qCtr, qNode, lPtr = 0,
+        cCtr,
         hasAssessment, isMandatory, lessonNode;
     report.header.systemId = data.$.systemId;
     report.header.baseCatalogId = data.$.baseCatalogId;
@@ -64,6 +65,12 @@ function createLessonNode(data) {
                 qNode.passedName = [];
                 qNode.failedName = [];
                 qNode.choice = data.topic[l].assessment[0].question[q].choice;
+                cCtr = qNode.choice.length;
+                for (var c = 0; c < cCtr; c++) {
+                    qNode.choice[c].userId = [];
+                    qNode.choice[c].userName = [];
+                    qNode.choice[c].ctr = 0;
+                }
                 lessonNode.question[q] = qNode;
             }
             report.body.lesson.push(lessonNode);
@@ -74,7 +81,7 @@ function createLessonNode(data) {
 //==================================================================
 function mapResults(data) {
     var uCtr = data.length,
-        uData, ctoData, resultData, qCtr, completedData, ref, uId, uName, qData;
+        uData, ctoData, resultData, qCtr, completedData, ref, uId, uName, qData, choiceData, selectedData, cCtr;
     try {
         userCount.total = uCtr;
         for (var u = 0; u < uCtr; u++) {
@@ -88,11 +95,21 @@ function mapResults(data) {
             }
             userCount.completed++;
             qData = ctoData[8].split(',');
+            choiceData = ctoData[10].split(',');
             resultData = ctoData[11].split(',');
             completedData = ctoData[12].split(',');
             qCtr = qData.length;
             for (var q = 0; q < qCtr; q++) {
                 ref = refPointer[qData[q]];
+                selectedData = choiceData[q].split('-');
+                cCtr = selectedData.length;
+                for (var c = 0; c < cCtr; c++) {
+                    if (selectedData[c] === '1') {
+                        report.body.lesson[ref.lessonIdx].question[ref.questionIdx].choice[c].userId.push(uId);
+                        report.body.lesson[ref.lessonIdx].question[ref.questionIdx].choice[c].userName.push(uName);
+                        report.body.lesson[ref.lessonIdx].question[ref.questionIdx].choice[c].ctr++;
+                    }
+                }
                 if (resultData[q] === 'P') {
                     report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passedId.push(uId);
                     report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passedName.push(uName);
@@ -170,6 +187,9 @@ function createHeader() {
 function createBody(data, idx) {
     var hStr = '',
         qCtr = data.question.length,
+        selectedId = '',
+        selectedName = '',
+        o = 0,
         oCtr = 0,
         strClass = '',
         extra = '',
@@ -199,16 +219,22 @@ function createBody(data, idx) {
         htmlStr += '<div><ul>';
         oCtr = data.question[q].choice.length;
         isRadio = data.question[q].type === 'radio';
-        for (var o = 0; o < oCtr; o++) {
+        for (o = 0; o < oCtr; o++) {
             isCorrect = data.question[q].choice[o].$.isCorrect === 'true';
             strClass = isRadio ? 'radio ' : 'checkbox ';
             strClass += isCorrect ? 'correct ' : 'incorrect';
             if (verbose) {
                 extra = '[' + data.question[q].choice[o].$.choiceId + '] ';
             }
+            selectedId = data.question[q].choice[o].userId;
+            selectedName = data.question[q].choice[o].userName;
             htmlStr += '<li class="' + strClass + '">' + extra + data.question[q].choice[o]._ + '</li>';
         }
         htmlStr += '</ul></div>';
+        if (verbose) {
+
+            htmlStr += 'hello world';
+        }
         htmlStr += '</td>\n';
         htmlStr += '\t\t</tr>\n';
     }
