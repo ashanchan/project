@@ -69,11 +69,11 @@ function createLessonNode(data) {
 //==================================================================
 function mapResults(data) {
     var uCtr = data.length,
-        uData, ctoData, resultData, qCtr, lessonCompleted, rCtr, ref, uid, uName;
+        uData, ctoData, resultData, qCtr, completedData, rCtr, ref, uId, uName, qData, lCtr, lId;
     try {
         for (var u = 0; u < uCtr; u++) {
             uData = data[u].CORE_LESSON.split('$')[1];
-            uid = data[u].USER_ID;
+            uId = data[u].USER_ID;
             uName = data[u].LASTNAME + ' ' + data[u].FIRSTNAME;
             ctoData = uData.split('|');
             qData = ctoData[8].split(',');
@@ -83,18 +83,18 @@ function mapResults(data) {
             for (var q = 0; q < qCtr; q++) {
                 ref = refPointer[qData[q]];
                 if (resultData[q] === 'P') {
-                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uid);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].passed.push(uId);
                 } else {
-                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uid);
+                    report.body.lesson[ref.lessonIdx].question[ref.questionIdx].failed.push(uId);
                 }
             }
-            console.log(completedData[u]);
-            lessonCompleted = completedData[u].split('_')[1];
-            if (lessonCompleted === 'P') {
-                report.body.lesson[ref.lessonIdx].passed.push(uid);
-            } else {
-                report.body.lesson[ref.lessonIdx].failed.push(uid);
-            }
+            // console.log(completedData[u]);
+            // lessonCompleted = completedData[u].split('_')[1];
+            // if (lessonCompleted === 'P') {
+            //     report.body.lesson[ref.lessonIdx].passed.push(uId);
+            // } else {
+            //     report.body.lesson[ref.lessonIdx].failed.push(uId);
+            // }
         }
     } catch (err) {
         sendData('onReportDataProcessError', err.message);
