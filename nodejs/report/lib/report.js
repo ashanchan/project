@@ -186,34 +186,21 @@ function createHeader() {
 }
 //==================================================================
 function createBody(data, idx) {
-    var hStr = '',
-        qCtr = data.question.length,
+    var qCtr = data.question.length,
         o = 0,
         oCtr = 0,
         strClass = '',
         extra = '',
         isCorrect = true,
         isRadio = true;
-
-    hStr += '<h2>' + data.title + '</h2>';
-
-    if (verbose) {
-        hStr += '<div id="LESSON_"' + idx + ' class="not_expanded">';
-        hStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.passedId.length + data.failedId.length) + '] <b>Total Passed</b> : [' + Number(data.passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.failedId.length) + ']</div>';
-        hStr += '<div class="extra"><b>Passed</b> : [' + data.passedId + '] <b>Not Passed</b> : [' + data.failedId + ']</div>';
-        hStr += '</div>';
-    }
     htmlStr += '\t<table>\n';
     htmlStr += '\t\t<tr>\n';
-    htmlStr += '\t\t\t<th id="' + idx + '">' + hStr + '</th>\n';
+    addExtraData('lesson', idx, data);
     htmlStr += '\t\t</tr>\n';
     for (var q = 0; q < qCtr; q++) {
         htmlStr += '\t\t<tr>\n';
         htmlStr += '\t\t\t<td>';
-        if (verbose) {
-            extra = '[' + data.question[q].id + '] ';
-        }
-        htmlStr += '<h3 class="question">' + extra + data.question[q].questionText[0].p + '</h3>';
+        htmlStr += '<h3 class="question">[' + data.question[q].id + '] ' + data.question[q].questionText[0].p + '</h3>';
         if (verbose) {
             htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.question[q].passedId.length + data.question[q].failedId.length) + '] <b>Total Passed</b> : [' + Number(data.question[q].passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[q].failedId.length) + ']</div>';
             htmlStr += '<div class="extra"><b>Passed</b> : [' + data.question[q].passedId + '] <b>Not Passed</b> : [' + data.question[q].failedId + ']</div>';
@@ -245,8 +232,25 @@ function createBody(data, idx) {
     htmlStr += '\t<hr>\n';
 }
 //==================================================================
-function addExtraData() {
+function addExtraData(type, idx, data) {
+    switch (type) {
+        case 'lesson':
+            htmlStr += '\t\t\t<th id="' + idx + '">';
+            htmlStr += '<h2>' + data.title + '</h2>';
+            htmlStr += '<div id="LESSON_"' + idx + ' class="not_expanded">';
+            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.passedId.length + data.failedId.length) + '] <b>Total Passed</b> : [' + Number(data.passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.failedId.length) + ']</div>';
+            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.passedId + '] <b>Not Passed</b> : [' + data.failedId + ']</div>';
+            htmlStr += '</div>';
+            htmlStr += '</th>\n';
+            break;
 
+        case 'question':
+            break;
+        case 'choice':
+            break;
+        default:
+            break;
+    }
 }
 //==================================================================
 function createFooter() {
