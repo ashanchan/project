@@ -160,16 +160,18 @@ function generateReport() {
 function createHeader() {
     htmlStr = '';
     htmlStr += '<!DOCTYPE html>\n';
-    htmlStr += '<html lang="en">\n';
+    htmlStr += '<html lang="en">\n\n';
     htmlStr += '<head>\n';
     htmlStr += '\t<meta charset="UTF-8">\n';
     htmlStr += '\t<meta http-equiv="X-UA-Compatible" content="IE=edge">\n';
     htmlStr += '\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
     htmlStr += '\t<title>' + report.header.title + '</title>\n';
     htmlStr += '\t<link rel="stylesheet" href="style.css">\n';
-    htmlStr += '\t<script src = "report.js"></script>\n';
-    htmlStr += '</head>\n';
-    htmlStr += '<body>\n';
+    htmlStr += '\t<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>\n';
+    htmlStr += '\t<script type="text/javascript" src="data.js"></script>\n';
+    htmlStr += '\t<script type="text/javascript" src="report.js"></script>\n';
+    htmlStr += '</head>\n\n';
+    htmlStr += '<body onload="init()">\n';
     addTrackedData('header', null, null);
 }
 //==================================================================
@@ -181,7 +183,7 @@ function createBody(data, idx) {
         isCorrect = true,
         isRadio = true;
 
-    htmlStr += '\t<table class="detail">\n';
+    htmlStr += '\t<table id="LESSON_' + idx + '" class="detail">\n';
     htmlStr += '\t\t<tr>\n';
     addTrackedData('lesson', idx, data);
     htmlStr += '\t\t</tr>\n';
@@ -189,38 +191,56 @@ function createBody(data, idx) {
         htmlStr += '\t\t<tr>\n';
         htmlStr += '\t\t\t<td>\n';
         addTrackedData('question', q, data);
-        htmlStr += '\t\t\t\t<div class="js-data-holder">\n';
-        htmlStr += '\t\t\t\t\t<ul>\n';
+        htmlStr += '\t\t\t\t\t<div class="js-data-holder">\n';
+        htmlStr += '\t\t\t\t\t\t<ul>\n';
         oCtr = data.question[q].choice.length;
         isRadio = data.question[q].type === 'radio';
         for (o = 0; o < oCtr; o++) {
             isCorrect = data.question[q].choice[o].$.isCorrect === 'true';
             strClass = isRadio ? 'radio ' : 'checkbox ';
             strClass += isCorrect ? 'correct ' : 'incorrect';
-            htmlStr += '\t\t\t\t\t\t<li class="' + strClass + '">' + '[' + data.question[q].choice[o].$.choiceId + '] ' + data.question[q].choice[o]._ + '</li>\n';
+            htmlStr += '\t\t\t\t\t\t\t<li class="' + strClass + '">' + '[' + data.question[q].choice[o].$.choiceId + '] ' + data.question[q].choice[o]._ + '</li>\n';
         }
-        htmlStr += '\t\t\t\t\t</ul>\n';
+        htmlStr += '\t\t\t\t\t\t</ul>\n';
         addTrackedData('choice', q, data);
         htmlStr += '\t\t\t</td>\n';
         htmlStr += '\t\t</tr>\n';
     }
     htmlStr += '\t</table>\n\n';
-    htmlStr += '\t<hr>\n';
+    htmlStr += '\t<hr>\n\n';
 }
 //==================================================================
 function createFooter() {
-    htmlStr += '<div class="footer">&copy; LRN. Generated on : ' + new Date() + '</div>\n';
-    htmlStr += '</body>\n';
+    addTrackedData('analytics', null, null);
+    htmlStr += '\t<div class="footer">&copy; LRN Corporation. Generated on : ' + new Date() + '</div>\n\n';
+    htmlStr += '</body>\n\n';
     htmlStr += '</html>\n';
 }
 //==================================================================
 function createReport() {
     var targetFile = './data/' + dataHolder.fileData.dataFile + '-report.html';
+    var targetFile1 = './data/data.js';
     fs.writeFile(targetFile, htmlStr, 'utf-8', function (err) {
         if (err) {
             sendData('onReportDataError', err.message);
         } else {
             sendData('onReportCompleted', null);
+        }
+    });
+    //===
+    report.body.course = {
+        completed: userCount.completed,
+        skipped: userCount.skipped
+    };
+
+    var reportData = 'var reportData = ' + JSON.stringify(report.body) + ';\n';
+    //==
+    fs.writeFile(targetFile1, reportData, 'utf-8', function (err) {
+        if (err) {
+            console.log(err.message);
+            sendData('onReportDataErrorx', err.message);
+        } else {
+            sendData('onReportCompletedx', null);
         }
     });
 }
@@ -233,22 +253,23 @@ function addTrackedData(type, idx, data) {
     switch (type) {
         case 'header':
             createToggle();
-            htmlStr += '\t<table id="COURSE" class= "header">\n';
+            htmlStr += '\t<table id="COURSE" class="header">\n';
             htmlStr += '\t\t<th id="DETAILS">\n';
-            htmlStr += '\t\t\t<td>\n';
+            htmlStr += '\t\t\t<tr>\n';
             htmlStr += '\t\t\t\t<h1>' + report.header.title + '</h1>\n';
             htmlStr += '\t\t\t\t<div id="COURSE">\n';
-            htmlStr += '\t\t\t\t<div class="extra">\n';
-            htmlStr += '\t\t\t\t\t<p>';
+            htmlStr += '\t\t\t\t\t<div class="extra">\n';
+            htmlStr += '\t\t\t\t\t\t<p>';
             htmlStr += report.header.description + '<br>';
             htmlStr += '<strong>modified on</strong> : [' + report.header.modified + '] <strong>System Id</strong> : [' + report.header.systemId + '] <strong>Catalog Id</strong> :[' + report.header.catalogId + ']</p>\n';
-            htmlStr += '\t\t\t\t\t<hr>\n';
-            htmlStr += '\t\t\t\t\t<p>';
+            htmlStr += '\t\t\t\t\t\t<hr>\n';
+            htmlStr += '\t\t\t\t\t\t<p>';
             htmlStr += '<strong>Testout Mode</strong> : [' + report.header.assessment[0].$.testOutMode + '] <strong>Testout Level</strong> :[' + report.header.assessment[0].$.testOutMode + '] <strong>Randomize</strong> : [' + report.header.assessment[0].$.randomize + '] <strong>Pooling</strong> : [' + report.header.assessment[0].$.pooling + ']<br>';
             htmlStr += '<strong>Total User</strong> : [' + userCount.total + '] <strong>Total Attempted</strong> : [' + userCount.completed + '] <strong>Total Skipped</strong> : [' + userCount.skipped + ']<br>';
             htmlStr += '</p>\n';
+            htmlStr += '\t\t\t\t\t</div>\n';
             htmlStr += '\t\t\t\t</div>\n';
-            htmlStr += '\t\t\t\</td>\n';
+            htmlStr += '\t\t\t</tr>\n';
             htmlStr += '\t\t</th>\n';
             htmlStr += '\t</table>\n\n';
             break;
@@ -256,11 +277,10 @@ function addTrackedData(type, idx, data) {
         case 'lesson':
             htmlStr += '\t\t\t<th id="' + idx + '">\n';
             htmlStr += '\t\t\t\t<h2>' + data.title + '</h2>\n';
-            htmlStr += '\t\t\t\t<div id="LESSON_"' + idx + '>\n';
-            htmlStr += '\t\t\t\t\t<div class="extra"><strong>Attempted By</strong> : [' + Number(data.passedId.length + data.failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.failedId.length) + ']</div>\n';
-            htmlStr += '\t\t\t\t\t<div class="js-data-holder">\n';
-            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Passed</strong> : [' + data.passedId + '] <strong>Not Passed</strong> : [' + data.failedId + ']</div>\n';
-            htmlStr += '\t\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\t<div class="extra">\n';
+            htmlStr += '\t\t\t\t\t<span><strong>Attempted By</strong> : [' + Number(data.passedId.length + data.failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.failedId.length) + ']</span><br>\n';
+            htmlStr += '\t\t\t\t\t<span><strong>Passed</strong> : [' + data.passedName + ']</span><br>\n';
+            htmlStr += '\t\t\t\t\t<span><strong>Not Passed</strong> : [' + data.failedName + ']</span><br>\n';
             htmlStr += '\t\t\t\t</div>\n';
             htmlStr += '\t\t\t</th>\n';
             break;
@@ -268,25 +288,51 @@ function addTrackedData(type, idx, data) {
         case 'question':
             htmlStr += '\t\t\t\t<div class="js-data-holder">\n';
             htmlStr += '\t\t\t\t\t<h3 class="question">[' + data.question[idx].id + '] ' + data.question[idx].questionText[0].p + '</h3>\n';
-            htmlStr += '\t\t\t\t\t<div id="QUESTION_' + idx + '">\n';
-            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Attempted By</strong> : [' + Number(data.question[idx].passedId.length + data.question[idx].failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.question[idx].passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.question[idx].failedId.length) + ']</div>\n';
-            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Passed</strong> : [' + data.question[idx].passedId + '] <strong>Not Passed</strong> : [' + data.question[idx].failedId + ']</div>\n';
+            break;
+
+        case 'choice':
+            htmlStr += '\t\t\t\t\t\t<div id="QUESTION_' + idx + '">\n';
+            htmlStr += '\t\t\t\t\t\t\t<div class="extra"><strong>Attempted By</strong> : [' + Number(data.question[idx].passedId.length + data.question[idx].failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.question[idx].passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.question[idx].failedId.length) + ']</div>\n';
+            htmlStr += '\t\t\t\t\t\t\t<div class="extra"><strong>Passed</strong> : [' + data.question[idx].passedId + '] <strong>Not Passed</strong> : [' + data.question[idx].failedId + ']</div>\n';
+            htmlStr += '\t\t\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\t\t\t<div id="CHOICE_' + idx + '" class="js-data-holder">\n';
+            htmlStr += '\t\t\t\t\t\t\t';
+            var oCtr = data.question[idx].choice.length;
+            for (var o = 0; o < oCtr; o++) {
+                htmlStr += 'Number of Learner selected choice ' + o + ': [' + Number(data.question[idx].choice[o].userId.length) + ']<br>';
+            }
+            htmlStr += '\n\t\t\t\t\t\t</div>\n';
             htmlStr += '\t\t\t\t\t</div>\n';
             htmlStr += '\t\t\t\t</div>\n';
             break;
 
-        case 'choice':
-            htmlStr += '\t\t\t\t\t<div id="CHOICE_' + idx + '" class="js-data-holder">\n';
-            htmlStr += '\t\t\t\t\t\t';
-            var oCtr = data.question[idx].choice.length;
-            for (var o = 0; o < oCtr; o++) {
-                htmlStr += '<strong>Choice ' + o + '<strong> : [' + data.question[idx].choice[o].userId + ']<br>';
-            }
-            htmlStr += '\n\t\t\t\t\t</div>\n';
-            htmlStr += '\t\t\t\t</div>\n';
-            break;
+        case 'analytics':
+            htmlStr += '\t<table id="ANALYTICS" class="header">\n';
+            htmlStr += '\t\t<th id="GRAPH_DATA">\n';
+            htmlStr += '\t\t\t<tr>\n';
+            htmlStr += '\t\t\t\t<h2>Anaylitcs</h2>\n';
+            htmlStr += '\t\t\t</tr>\n';
+            htmlStr += '\t\t</th>\n';
 
-        default:
+            htmlStr += '\t\t\t<tr>\n';
+            htmlStr += '\t\t<td>\n';
+            htmlStr += '\t\t\t<div id="COURSE_CHART_DIV"></div>\n';
+            htmlStr += '\t\t</td>\n';
+            htmlStr += '\t\t\t</tr>\n';
+
+            htmlStr += '\t\t\t<tr>\n';
+            htmlStr += '\t\t<td>\n';
+            htmlStr += '\t\t\t<div id="LESSON_CHART_DIV"></div>\n';
+            htmlStr += '\t\t</td>\n';
+            htmlStr += '\t\t\t</tr>\n';
+
+            htmlStr += '\t\t\t<tr>\n';
+            htmlStr += '\t\t<td>\n';
+            htmlStr += '\t\t\t<div id="QUESTION_CHART_DIV"></div>\n';
+            htmlStr += '\t\t</td>\n';
+            htmlStr += '\t\t\t</tr>\n';
+
+            htmlStr += '\t</table>\n\n';
             break;
     }
 }
@@ -300,7 +346,7 @@ function getTextNode(textNode) {
 function createToggle() {
     htmlStr += '\t<div id="TOGGLER">';
     htmlStr += '<label class="switch"><input type="checkbox" id="I_BOX" onclick="toggleData(event)"><span class="slider"> </span></label >';
-    htmlStr += '</div>\n';
+    htmlStr += '</div>\n\n';
 }
 //==================================================================
 module.exports.init = init;
