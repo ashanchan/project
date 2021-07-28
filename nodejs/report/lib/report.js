@@ -2,7 +2,6 @@ var notifier = require('./notifier');
 var fs = require('fs');
 var dataHolder;
 var htmlStr = '';
-var verbose = true;
 var refPointer = [];
 var userCount = {
     total: 0,
@@ -168,21 +167,10 @@ function createHeader() {
     htmlStr += '\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
     htmlStr += '\t<title>' + report.header.title + '</title>\n';
     htmlStr += '\t<link rel="stylesheet" href="style.css">\n';
+    htmlStr += '\t<script src = "report.js"></script>\n';
     htmlStr += '</head>\n';
     htmlStr += '<body>\n';
-    htmlStr += '\t<table id="main">';
-    htmlStr += '\t\t<tr>';
-    htmlStr += '\t\t\t<td>';
-    htmlStr += '<h1>' + report.header.title + '</h1>';
-    if (verbose) {
-        htmlStr += '<p>' + report.header.description + '</p>';
-        htmlStr += '<p> <b>modified on</b> : [' + report.header.modified + '] <b>System Id</b> : [' + report.header.systemId + '] <b>Catalog Id</b> :[' + report.header.catalogId + ']</p>';
-    }
-    htmlStr += '<div class="extra"><p><b>Testout Mode</b> : [' + report.header.assessment[0].$.testOutMode + '] <b>Testout Level</b> :[' + report.header.assessment[0].$.testOutMode + '] <b>Randomize</b> : [' + report.header.assessment[0].$.randomize + '] <b>Pooling</b> : [' + report.header.assessment[0].$.pooling + ']</p></div>';
-    htmlStr += '<div class="extra"><p><b>Total User</b> : [' + userCount.total + '] <b>Total Attempted</b> : [' + userCount.completed + '] <b>Total Skipped</b> : [' + userCount.skipped + '] </p></div > ';
-    htmlStr += '</td>';
-    htmlStr += '\t\t</tr>';
-    htmlStr += '\t</table>';
+    addTrackedData('header', null, null);
 }
 //==================================================================
 function createBody(data, idx) {
@@ -190,68 +178,34 @@ function createBody(data, idx) {
         o = 0,
         oCtr = 0,
         strClass = '',
-        extra = '',
         isCorrect = true,
         isRadio = true;
-    htmlStr += '\t<table>\n';
+
+    htmlStr += '\t<table class="detail">\n';
     htmlStr += '\t\t<tr>\n';
-    addExtraData('lesson', idx, data);
+    addTrackedData('lesson', idx, data);
     htmlStr += '\t\t</tr>\n';
     for (var q = 0; q < qCtr; q++) {
         htmlStr += '\t\t<tr>\n';
-        htmlStr += '\t\t\t<td>';
-        addExtraData('question', q, data);
-        htmlStr += '<div><ul>';
+        htmlStr += '\t\t\t<td>\n';
+        addTrackedData('question', q, data);
+        htmlStr += '\t\t\t\t<div class="js-data-holder">\n';
+        htmlStr += '\t\t\t\t\t<ul>\n';
         oCtr = data.question[q].choice.length;
         isRadio = data.question[q].type === 'radio';
         for (o = 0; o < oCtr; o++) {
             isCorrect = data.question[q].choice[o].$.isCorrect === 'true';
             strClass = isRadio ? 'radio ' : 'checkbox ';
             strClass += isCorrect ? 'correct ' : 'incorrect';
-            htmlStr += '<li class="' + strClass + '">' + '[' + data.question[q].choice[o].$.choiceId + '] ' + data.question[q].choice[o]._ + '</li>';
+            htmlStr += '\t\t\t\t\t\t<li class="' + strClass + '">' + '[' + data.question[q].choice[o].$.choiceId + '] ' + data.question[q].choice[o]._ + '</li>\n';
         }
-        htmlStr += '</ul></div>';
-        addExtraData('choice', q, data);
-        htmlStr += '</td>\n';
+        htmlStr += '\t\t\t\t\t</ul>\n';
+        addTrackedData('choice', q, data);
+        htmlStr += '\t\t\t</td>\n';
         htmlStr += '\t\t</tr>\n';
     }
     htmlStr += '\t</table>\n\n';
     htmlStr += '\t<hr>\n';
-}
-//==================================================================
-function addExtraData(type, idx, data) {
-    switch (type) {
-        case 'lesson':
-            htmlStr += '\t\t\t<th id="' + idx + '">';
-            htmlStr += '<h2>' + data.title + '</h2>';
-            htmlStr += '<div id="LESSON_"' + idx + ' class="not_expanded">';
-            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.passedId.length + data.failedId.length) + '] <b>Total Passed</b> : [' + Number(data.passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.failedId.length) + ']</div>';
-            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.passedId + '] <b>Not Passed</b> : [' + data.failedId + ']</div>';
-            htmlStr += '</div>';
-            htmlStr += '</th>\n';
-            break;
-
-        case 'question':
-            htmlStr += '<h3 class="question">[' + data.question[idx].id + '] ' + data.question[idx].questionText[0].p + '</h3>';
-            htmlStr += '<div id="QUESTION_"' + idx + ' class="not_expanded">';
-            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.question[idx].passedId.length + data.question[idx].failedId.length) + '] <b>Total Passed</b> : [' + Number(data.question[idx].passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[idx].failedId.length) + ']</div>';
-            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.question[idx].passedId + '] <b>Not Passed</b> : [' + data.question[idx].failedId + ']</div>';
-            htmlStr += '</div>';
-            break;
-
-        case 'choice':
-            htmlStr += '<div id="CHOICE_"' + idx + ' class="not_expanded">';
-            htmlStr += '<div class="extra">';
-            var oCtr = data.question[idx].choice.length;
-            for (var o = 0; o < oCtr; o++) {
-                htmlStr += '<b>Choice ' + o + '<b> : [' + data.question[idx].choice[o].userId + ']<br>';
-            }
-            htmlStr += '</div>\n';
-            htmlStr += '</div>';
-            break;
-        default:
-            break;
-    }
 }
 //==================================================================
 function createFooter() {
@@ -275,10 +229,78 @@ function sendData(eventId, data) {
     notifier.emit(eventId, data);
 }
 //==================================================================
+function addTrackedData(type, idx, data) {
+    switch (type) {
+        case 'header':
+            createToggle();
+            htmlStr += '\t<table id="COURSE" class= "header">\n';
+            htmlStr += '\t\t<th id="DETAILS">\n';
+            htmlStr += '\t\t\t<td>\n';
+            htmlStr += '\t\t\t\t<h1>' + report.header.title + '</h1>\n';
+            htmlStr += '\t\t\t\t<div id="COURSE">\n';
+            htmlStr += '\t\t\t\t<div class="extra">\n';
+            htmlStr += '\t\t\t\t\t<p>';
+            htmlStr += report.header.description + '<br>';
+            htmlStr += '<strong>modified on</strong> : [' + report.header.modified + '] <strong>System Id</strong> : [' + report.header.systemId + '] <strong>Catalog Id</strong> :[' + report.header.catalogId + ']</p>\n';
+            htmlStr += '\t\t\t\t\t<hr>\n';
+            htmlStr += '\t\t\t\t\t<p>';
+            htmlStr += '<strong>Testout Mode</strong> : [' + report.header.assessment[0].$.testOutMode + '] <strong>Testout Level</strong> :[' + report.header.assessment[0].$.testOutMode + '] <strong>Randomize</strong> : [' + report.header.assessment[0].$.randomize + '] <strong>Pooling</strong> : [' + report.header.assessment[0].$.pooling + ']<br>';
+            htmlStr += '<strong>Total User</strong> : [' + userCount.total + '] <strong>Total Attempted</strong> : [' + userCount.completed + '] <strong>Total Skipped</strong> : [' + userCount.skipped + ']<br>';
+            htmlStr += '</p>\n';
+            htmlStr += '\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\</td>\n';
+            htmlStr += '\t\t</th>\n';
+            htmlStr += '\t</table>\n\n';
+            break;
+
+        case 'lesson':
+            htmlStr += '\t\t\t<th id="' + idx + '">\n';
+            htmlStr += '\t\t\t\t<h2>' + data.title + '</h2>\n';
+            htmlStr += '\t\t\t\t<div id="LESSON_"' + idx + '>\n';
+            htmlStr += '\t\t\t\t\t<div class="extra"><strong>Attempted By</strong> : [' + Number(data.passedId.length + data.failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.failedId.length) + ']</div>\n';
+            htmlStr += '\t\t\t\t\t<div class="js-data-holder">\n';
+            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Passed</strong> : [' + data.passedId + '] <strong>Not Passed</strong> : [' + data.failedId + ']</div>\n';
+            htmlStr += '\t\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t</th>\n';
+            break;
+
+        case 'question':
+            htmlStr += '\t\t\t\t<div class="js-data-holder">\n';
+            htmlStr += '\t\t\t\t\t<h3 class="question">[' + data.question[idx].id + '] ' + data.question[idx].questionText[0].p + '</h3>\n';
+            htmlStr += '\t\t\t\t\t<div id="QUESTION_' + idx + '">\n';
+            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Attempted By</strong> : [' + Number(data.question[idx].passedId.length + data.question[idx].failedId.length) + '] <strong>Total Passed</strong> : [' + Number(data.question[idx].passedId.length) + '] <strong>Total Not Passed</strong> : [' + Number(data.question[idx].failedId.length) + ']</div>\n';
+            htmlStr += '\t\t\t\t\t\t<div class="extra"><strong>Passed</strong> : [' + data.question[idx].passedId + '] <strong>Not Passed</strong> : [' + data.question[idx].failedId + ']</div>\n';
+            htmlStr += '\t\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\t</div>\n';
+            break;
+
+        case 'choice':
+            htmlStr += '\t\t\t\t\t<div id="CHOICE_' + idx + '" class="js-data-holder">\n';
+            htmlStr += '\t\t\t\t\t\t';
+            var oCtr = data.question[idx].choice.length;
+            for (var o = 0; o < oCtr; o++) {
+                htmlStr += '<strong>Choice ' + o + '<strong> : [' + data.question[idx].choice[o].userId + ']<br>';
+            }
+            htmlStr += '\n\t\t\t\t\t</div>\n';
+            htmlStr += '\t\t\t\t</div>\n';
+            break;
+
+        default:
+            break;
+    }
+}
+//==================================================================
 function getTextNode(textNode) {
     // for (var i in textNode) {
     //     //console.log(i, textNode[i]);
     // }
+}
+//==================================================================
+function createToggle() {
+    htmlStr += '\t<div id="TOGGLER">';
+    htmlStr += '<label class="switch"><input type="checkbox" id="I_BOX" onclick="toggleData(event)"><span class="slider"> </span></label >';
+    htmlStr += '</div>\n';
 }
 //==================================================================
 module.exports.init = init;
