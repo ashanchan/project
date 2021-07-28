@@ -60,6 +60,7 @@ function createLessonNode(data) {
                 };
                 qNode.type = data.topic[l].assessment[0].question[q].$.type === 'checkAll' ? 'checkbox' : 'radio';
                 qNode.questionText = data.topic[l].assessment[0].question[q].questionText;
+                getTextNode(qNode.questionText);
                 qNode.passedId = [];
                 qNode.failedId = [];
                 qNode.passedName = [];
@@ -187,8 +188,6 @@ function createHeader() {
 function createBody(data, idx) {
     var hStr = '',
         qCtr = data.question.length,
-        selectedId = '',
-        selectedName = '',
         o = 0,
         oCtr = 0,
         strClass = '',
@@ -197,9 +196,12 @@ function createBody(data, idx) {
         isRadio = true;
 
     hStr += '<h2>' + data.title + '</h2>';
+
     if (verbose) {
+        hStr += '<div id="LESSON_"' + idx + ' class="not_expanded">';
         hStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.passedId.length + data.failedId.length) + '] <b>Total Passed</b> : [' + Number(data.passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.failedId.length) + ']</div>';
         hStr += '<div class="extra"><b>Passed</b> : [' + data.passedId + '] <b>Not Passed</b> : [' + data.failedId + ']</div>';
+        hStr += '</div>';
     }
     htmlStr += '\t<table>\n';
     htmlStr += '\t\t<tr>\n';
@@ -226,20 +228,25 @@ function createBody(data, idx) {
             if (verbose) {
                 extra = '[' + data.question[q].choice[o].$.choiceId + '] ';
             }
-            selectedId = data.question[q].choice[o].userId;
-            selectedName = data.question[q].choice[o].userName;
             htmlStr += '<li class="' + strClass + '">' + extra + data.question[q].choice[o]._ + '</li>';
         }
         htmlStr += '</ul></div>';
         if (verbose) {
-
-            htmlStr += 'hello world';
+            extra = '';
+            for (o = 0; o < oCtr; o++) {
+                extra += '<b>Choice ' + o + '<b> : [' + data.question[q].choice[o].userId + ']<br>';
+            }
+            htmlStr += '<div class="extra">' + extra + '</div>';
         }
         htmlStr += '</td>\n';
         htmlStr += '\t\t</tr>\n';
     }
     htmlStr += '\t</table>\n\n';
     htmlStr += '\t<hr>\n';
+}
+//==================================================================
+function addExtraData() {
+
 }
 //==================================================================
 function createFooter() {
@@ -261,6 +268,12 @@ function createReport() {
 //==================================================================
 function sendData(eventId, data) {
     notifier.emit(eventId, data);
+}
+//==================================================================
+function getTextNode(textNode) {
+    for (var i in textNode) {
+        console.log(i, textNode[i]);
+    }
 }
 //==================================================================
 module.exports.init = init;
