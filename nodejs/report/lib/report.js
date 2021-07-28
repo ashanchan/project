@@ -200,11 +200,7 @@ function createBody(data, idx) {
     for (var q = 0; q < qCtr; q++) {
         htmlStr += '\t\t<tr>\n';
         htmlStr += '\t\t\t<td>';
-        htmlStr += '<h3 class="question">[' + data.question[q].id + '] ' + data.question[q].questionText[0].p + '</h3>';
-        if (verbose) {
-            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.question[q].passedId.length + data.question[q].failedId.length) + '] <b>Total Passed</b> : [' + Number(data.question[q].passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[q].failedId.length) + ']</div>';
-            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.question[q].passedId + '] <b>Not Passed</b> : [' + data.question[q].failedId + ']</div>';
-        }
+        addExtraData('question', q, data);
         htmlStr += '<div><ul>';
         oCtr = data.question[q].choice.length;
         isRadio = data.question[q].type === 'radio';
@@ -212,19 +208,10 @@ function createBody(data, idx) {
             isCorrect = data.question[q].choice[o].$.isCorrect === 'true';
             strClass = isRadio ? 'radio ' : 'checkbox ';
             strClass += isCorrect ? 'correct ' : 'incorrect';
-            if (verbose) {
-                extra = '[' + data.question[q].choice[o].$.choiceId + '] ';
-            }
-            htmlStr += '<li class="' + strClass + '">' + extra + data.question[q].choice[o]._ + '</li>';
+            htmlStr += '<li class="' + strClass + '">' + '[' + data.question[q].choice[o].$.choiceId + '] ' + data.question[q].choice[o]._ + '</li>';
         }
         htmlStr += '</ul></div>';
-        if (verbose) {
-            extra = '';
-            for (o = 0; o < oCtr; o++) {
-                extra += '<b>Choice ' + o + '<b> : [' + data.question[q].choice[o].userId + ']<br>';
-            }
-            htmlStr += '<div class="extra">' + extra + '</div>';
-        }
+        addExtraData('choice', q, data);
         htmlStr += '</td>\n';
         htmlStr += '\t\t</tr>\n';
     }
@@ -245,8 +232,22 @@ function addExtraData(type, idx, data) {
             break;
 
         case 'question':
+            htmlStr += '<h3 class="question">[' + data.question[idx].id + '] ' + data.question[idx].questionText[0].p + '</h3>';
+            htmlStr += '<div id="QUESTION_"' + idx + ' class="not_expanded">';
+            htmlStr += '<div class="extra"><b>Attempted By</b> : [' + Number(data.question[idx].passedId.length + data.question[idx].failedId.length) + '] <b>Total Passed</b> : [' + Number(data.question[idx].passedId.length) + '] <b>Total Not Passed</b> : [' + Number(data.question[idx].failedId.length) + ']</div>';
+            htmlStr += '<div class="extra"><b>Passed</b> : [' + data.question[idx].passedId + '] <b>Not Passed</b> : [' + data.question[idx].failedId + ']</div>';
+            htmlStr += '</div>';
             break;
+
         case 'choice':
+            htmlStr += '<div id="CHOICE_"' + idx + ' class="not_expanded">';
+            htmlStr += '<div class="extra">';
+            var oCtr = data.question[idx].choice.length;
+            for (var o = 0; o < oCtr; o++) {
+                htmlStr += '<b>Choice ' + o + '<b> : [' + data.question[idx].choice[o].userId + ']<br>';
+            }
+            htmlStr += '</div>\n';
+            htmlStr += '</div>';
             break;
         default:
             break;
@@ -275,9 +276,9 @@ function sendData(eventId, data) {
 }
 //==================================================================
 function getTextNode(textNode) {
-    for (var i in textNode) {
-        console.log(i, textNode[i]);
-    }
+    // for (var i in textNode) {
+    //     //console.log(i, textNode[i]);
+    // }
 }
 //==================================================================
 module.exports.init = init;
