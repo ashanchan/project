@@ -158,6 +158,7 @@ function generateReport() {
 }
 //==================================================================
 function createHeader() {
+    var jsFile = './' + dataHolder.fileData.dataFile + '-report.js';
     htmlStr = '';
     htmlStr += '<!DOCTYPE html>\n';
     htmlStr += '<html lang="en">\n\n';
@@ -168,7 +169,7 @@ function createHeader() {
     htmlStr += '\t<title>' + report.header.title + '</title>\n';
     htmlStr += '\t<link rel="stylesheet" href="style.css">\n';
     htmlStr += '\t<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>\n';
-    htmlStr += '\t<script type="text/javascript" src="data.js"></script>\n';
+    htmlStr += '\t<script type="text/javascript" src="' + jsFile + '"></script>\n';
     htmlStr += '\t<script type="text/javascript" src="report.js"></script>\n';
     htmlStr += '</head>\n\n';
     htmlStr += '<body onload="init()">\n';
@@ -218,8 +219,8 @@ function createFooter() {
 }
 //==================================================================
 function createReport() {
-    var targetFile = './data/' + dataHolder.fileData.dataFile + '-report.html';
-    var targetFile1 = './data/data.js';
+    var targetFile = './output/' + dataHolder.fileData.dataFile + '-report.html';
+    var targetFile1 = './output/' + dataHolder.fileData.dataFile + '-report.js';
     fs.writeFile(targetFile, htmlStr, 'utf-8', function (err) {
         if (err) {
             sendData('onReportDataError', err.message);
