@@ -167,10 +167,10 @@ function createHeader() {
     htmlStr += '\t<meta http-equiv="X-UA-Compatible" content="IE=edge">\n';
     htmlStr += '\t<meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
     htmlStr += '\t<title>' + report.header.title + '</title>\n';
-    htmlStr += '\t<link rel="stylesheet" href="style.css">\n';
+    htmlStr += '\t<link rel="stylesheet" href="./../lib/style.css">\n';
     htmlStr += '\t<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>\n';
     htmlStr += '\t<script type="text/javascript" src="' + jsFile + '"></script>\n';
-    htmlStr += '\t<script type="text/javascript" src="report.js"></script>\n';
+    htmlStr += '\t<script type="text/javascript" src="./../lib/script.js"></script>\n';
     htmlStr += '</head>\n\n';
     htmlStr += '<body onload="init()">\n';
     addTrackedData('header', null, null);
